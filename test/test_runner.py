@@ -33,7 +33,7 @@ if __name__ == '__main__':
         'test_base',
         'test_helpers',
         'sources.test_base',
-        'sources.test_database',
+        'sources.test_sqlalchemy',
         'sources.test_derived',
         'sources.test_merge',
         'sources.test_static',

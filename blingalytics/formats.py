@@ -185,7 +185,7 @@ class Epoch(Format):
     Formats the column as a date. Expects the underlying data to be stored as
     an integer number of days since the UNIX epoch. (This storage method works
     great in conjunction with a
-    :class:`database.ColumnTransform <blingalytics.sources.database.ColumnTransform>`
+    :class:`sqlalchemy.ColumnTransform <blingalytics.sources.sqlalchemy.ColumnTransform>`
     filter for doing timezone offsets.)
     
     This date is formatted according to the Python thread's ``locale``

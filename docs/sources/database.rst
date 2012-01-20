@@ -1,27 +1,27 @@
-Database source
-===============
+SQLAlchemy source
+=================
 
-.. automodule:: blingalytics.sources.database
+.. automodule:: blingalytics.sources.sqlalchemy
 
 Column types
 ------------
 
-.. autoclass:: blingalytics.sources.database.GroupBy
-.. autoclass:: blingalytics.sources.database.Sum
-.. autoclass:: blingalytics.sources.database.Count
-.. autoclass:: blingalytics.sources.database.BoolAnd
-.. autoclass:: blingalytics.sources.database.BoolOr
-.. autoclass:: blingalytics.sources.database.ArrayAgg
-.. autoclass:: blingalytics.sources.database.First
-.. autoclass:: blingalytics.sources.database.Lookup
+.. autoclass:: blingalytics.sources.sqlalchemy.GroupBy
+.. autoclass:: blingalytics.sources.sqlalchemy.Sum
+.. autoclass:: blingalytics.sources.sqlalchemy.Count
+.. autoclass:: blingalytics.sources.sqlalchemy.BoolAnd
+.. autoclass:: blingalytics.sources.sqlalchemy.BoolOr
+.. autoclass:: blingalytics.sources.sqlalchemy.ArrayAgg
+.. autoclass:: blingalytics.sources.sqlalchemy.First
+.. autoclass:: blingalytics.sources.sqlalchemy.Lookup
 
 Filter types
 ------------
 
-.. autoclass:: blingalytics.sources.database.ColumnTransform
-.. autoclass:: blingalytics.sources.database.QueryFilter
+.. autoclass:: blingalytics.sources.sqlalchemy.ColumnTransform
+.. autoclass:: blingalytics.sources.sqlalchemy.QueryFilter
 
 Key ranges
 ----------
 
-.. autoclass:: blingalytics.sources.database.TableKeyRange
+.. autoclass:: blingalytics.sources.sqlalchemy.TableKeyRange

@@ -10,7 +10,7 @@ Available sources
    :maxdepth: 2
    
    sources/key_range
-   sources/database
+   sources/sqlalchemy
    sources/static
    sources/derived
    sources/merge

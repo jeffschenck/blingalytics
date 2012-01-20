@@ -2,4 +2,5 @@
 *.swp
 .DS_Store
 docs/_build/
+Blingalytics.egg-info
 

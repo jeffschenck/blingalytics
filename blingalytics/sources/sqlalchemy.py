@@ -1,10 +1,10 @@
 """
-The database source provides an interface for querying data from a table in
+The sqlalchemy source provides an interface for querying data from a table in
 the database.
 
 .. note::
 
-    The database source requires SQLAlchemy to be installed and connected to
+    The sqlalchemy source requires SQLAlchemy to be installed and connected to
     your database. It also expects your tables to be described using Elixir.
     See :doc:`/install`.
 
@@ -29,14 +29,14 @@ of data from another table, which you can do with the :class:`Lookup` column.
 You can also use the :doc:`/sources/merge` to combine the results of two or
 more reports over two or more database tables.
 
-When using columns from the database source, you'll be expected to provide an
-extra report attribute to specify which table to pull the data from:
+When using columns from the sqlalchemy source, you'll be expected to provide
+an extra report attribute to specify which table to pull the data from:
 
-* ``database_entity``: This report attribute specifies the database table to
+* ``sqlalchemy_entity``: This report attribute specifies the database table to
   query. It should be specified as a dotted-path string pointing to an Elixir
   ``Entity`` subclass. For example::
   
-      database_entity = 'model.reporting.ReportInfluencer'
+      sqlalchemy_entity = 'model.reporting.ReportInfluencer'
 
 """
 
@@ -53,13 +53,13 @@ from blingalytics.utils.collections import OrderedDict
 
 QUERY_LIMIT = 250
 
-class DatabaseSource(sources.Source):
+class SQLAlchemySource(sources.Source):
     def __init__(self, report):
-        super(DatabaseSource, self).__init__(report)
-        self.set_database_entity(report.database_entity)
+        super(SQLAlchemySource, self).__init__(report)
+        self.set_sqlalchemy_entity(report.sqlalchemy_entity)
 
-    def set_database_entity(self, entity):
-        # Receive the database entity class from the report definition.
+    def set_sqlalchemy_entity(self, entity):
+        # Receive the sqlalchemy entity class from the report definition.
         module, name = entity.rsplit('.', 1)
         module = __import__(module, globals(), locals(), [name])
         self._entity = getattr(module, name)
@@ -76,7 +76,7 @@ class DatabaseSource(sources.Source):
                 if report_filter.columns:
                     if report_filter.columns & filtered_columns:
                         raise ValueError('You cannot include the same column '
-                            'in more than one database filter.')
+                            'in more than one sqlalchemy filter.')
                     elif report_filter.columns & key_columns:
                         raise ValueError('You cannot filter key columns '
                             'since they are used in every filter query. '
@@ -85,11 +85,11 @@ class DatabaseSource(sources.Source):
                         filtered_columns |= report_filter.columns
                 query_filters[report_filter.columns].append(report_filter)
 
-        # Determine the list of unfiltered database columns
+        # Determine the list of unfiltered sqlalchemy columns
         # (Exclude lookup columns)
         query_columns = [
             name for name, column in self._columns
-            if isinstance(column, DatabaseColumn)
+            if isinstance(column, SQLAlchemyColumn)
         ]
         unfiltered_columns = frozenset(query_columns) \
             - filtered_columns - key_columns
@@ -234,10 +234,10 @@ class DatabaseSource(sources.Source):
 
 class EntityProxy(object):
     """
-    Proxy to database entities while applying appropriate column transforms.
+    Proxy to sqlalchemy entities while applying appropriate column transforms.
     
-    Used by the DatabaseSource. Proxies attribute access to the underlying
-    database entity while automatically performing column transforms when
+    Used by the SQLAlchemySource. Proxies attribute access to the underlying
+    sqlalchemy entity while automatically performing column transforms when
     those columns are accessed.
     """
     def __init__(self, entity, transforms, clean_inputs):
@@ -253,7 +253,7 @@ class EntityProxy(object):
 
 class QueryFilter(sources.Filter):
     """
-    Filters the database query or queries for this report.
+    Filters the sqlalchemy query or queries for this report.
 
     This filter expects one positional argument, a function defining the
     filter operation. This function will be passed as its first argument the
@@ -267,11 +267,11 @@ class QueryFilter(sources.Filter):
     ``sqlalchemy.sql.expression._BinaryExpression`` object. You will generally
     build these in a lambda like so::
 
-        database.QueryFilter(lambda entity: entity.is_active == True)
+        sqlalchemy.QueryFilter(lambda entity: entity.is_active == True)
 
     Or, with a user input widget::
 
-        database.QueryFilter(
+        sqlalchemy.QueryFilter(
             lambda entity, user_input: entity.user_id.in_(user_input),
             widget=Autocomplete(multiple=True))
 
@@ -289,7 +289,7 @@ class QueryFilter(sources.Filter):
 
 class ColumnTransform(sources.Filter):
     """
-    A transform allows you to alter a database column for every report column
+    A transform allows you to alter a sqlalchemy column for every report column
     or other filter that needs to access it. For example, this can be used to
     provide a timezone offset option that shifts all date and time columns by
     a certain number of hours.
@@ -308,7 +308,7 @@ class ColumnTransform(sources.Filter):
     the epoch and want to transform it to the number of days since the epoch,
     with a given number of hours offset for timezone, you can use::
 
-        database.ColumnTransform(
+        sqlalchemy.ColumnTransform(
             lambda column, user_input: column.op('+')(user_input).op('/')(24),
             columns=['purchase_time', 'user_last_login_time'],
             widget=widgets.Select(choices=TIMEZONE_CHOICES))
@@ -327,15 +327,15 @@ class ColumnTransform(sources.Filter):
             return self.filter_func(base_column, user_input)
         return self.filter_func(base_column)
 
-class DatabaseColumn(sources.Column):
+class SQLAlchemyColumn(sources.Column):
     """
-    Base class for a database report column.
+    Base class for a sqlalchemy report column.
     """
-    source = DatabaseSource
+    source = SQLAlchemySource
 
     def __init__(self, entity_column, **kwargs):
         self.entity_column = entity_column
-        super(DatabaseColumn, self).__init__(**kwargs)
+        super(SQLAlchemyColumn, self).__init__(**kwargs)
 
     def get_query_column(self, entity):
         # Returns a list of Entity.columns to query for.
@@ -372,7 +372,7 @@ class Lookup(sources.Column):
 
     For example::
 
-        database.Lookup('project.models.Publisher', 'name', 'publisher_id',
+        sqlalchemy.Lookup('project.models.Publisher', 'name', 'publisher_id',
             format=formats.String)
 
     Because the lookups are only done by primary key and are bulked up into
@@ -380,7 +380,7 @@ class Lookup(sources.Column):
     be. But doing a lot of lookups on large datasets can get pretty
     resource-intensive, so it's best to be judicious.
     """
-    source = DatabaseSource
+    source = SQLAlchemySource
 
     def __init__(self, entity, lookup_attr, pk_column, pk_attr='id', **kwargs):
         super(Lookup, self).__init__(**kwargs)
@@ -399,13 +399,13 @@ class Lookup(sources.Column):
     def pk_attr(self):
         return getattr(self.entity, self._pk_attr)
 
-class GroupBy(DatabaseColumn):
+class GroupBy(SQLAlchemyColumn):
     """
-    Performs a group-by operation on the given database column. It takes one
+    Performs a group-by operation on the given sqlalchemy column. It takes one
     positional argument: a string specifying the column to group by. There is
     also an optional keyword argument:
 
-    * ``include_null``: Whether the database column you're grouping on should
+    * ``include_null``: Whether the sqlalchemy column you're grouping on should
       filter out or include the null group. Defaults to ``False``, which will
       not include the null group.
 
@@ -440,21 +440,21 @@ class GroupBy(DatabaseColumn):
         # Never return a footer
         return None
 
-class Sum(DatabaseColumn):
+class Sum(SQLAlchemyColumn):
     """
     Performs a database sum aggregation. The first argument should be a string
-    specifying the database column to sum.
+    specifying the sqlalchemy column to sum.
     """
     def get_query_column(self, entity):
-        if isinstance(self.entity_column, DatabaseColumn):
+        if isinstance(self.entity_column, SQLAlchemyColumn):
             return func.sum(self.entity_column.get_query_column(entity))
 
         return func.sum(getattr(entity, self.entity_column))
 
-class Count(DatabaseColumn):
+class Count(SQLAlchemyColumn):
     """
     Performs a database count aggregation. The first argument should be a
-    string specifying the database column to count on. This also accepts one
+    string specifying the sqlalchemy column to count on. This also accepts one
     extra keyword argument:
 
     * ``distinct``: Whether to perform a distinct count or not. Defaults to
@@ -470,7 +470,7 @@ class Count(DatabaseColumn):
             column = column.distinct()
         return func.count(column)
 
-class First(DatabaseColumn):
+class First(SQLAlchemyColumn):
     """
     .. note::
 
@@ -482,12 +482,12 @@ class First(DatabaseColumn):
     .. _PostgreSQL implementation: http://wiki.postgresql.org/wiki/First_(aggregate)
 
     Performs a database first aggregation to return the first value found. The
-    first argument should be a string specifying the database column.
+    first argument should be a string specifying the sqlalchemy column.
     """
     def get_query_column(self, entity):
         return func.first(getattr(entity, self.entity_column))
 
-class BoolAnd(DatabaseColumn):
+class BoolAnd(SQLAlchemyColumn):
     """
     .. note::
 
@@ -496,13 +496,13 @@ class BoolAnd(DatabaseColumn):
 
     Performs a boolean-and aggregation. This aggregates to true if *all* the
     aggregated values are true; otherwise, it will aggregate to false. The
-    first argument should be a string specifying the database column to
+    first argument should be a string specifying the sqlalchemy column to
     aggregate on.
     """
     def get_query_column(self, entity):
         return func.bool_and(getattr(entity, self.entity_column))
 
-class BoolOr(DatabaseColumn):
+class BoolOr(SQLAlchemyColumn):
     """
     .. note::
 
@@ -511,13 +511,13 @@ class BoolOr(DatabaseColumn):
 
     Performs a boolean-or aggregation. This aggregates to true if *any* of the
     aggregated values are true; otherwise, it will aggregate to false. The
-    first argument should be a string specifying the database column to
+    first argument should be a string specifying the sqlalchemy column to
     aggregate on.
     """
     def get_query_column(self, entity):
         return func.bool_or(getattr(entity, self.entity_column))
 
-class ArrayAgg(DatabaseColumn):
+class ArrayAgg(SQLAlchemyColumn):
     """
     .. note::
 
@@ -526,12 +526,12 @@ class ArrayAgg(DatabaseColumn):
 
     Performs an array aggregation. This essentially compiles a list of all
     the values in all the rows being aggregated. The first argument should be
-    a string specifying the database column to aggregate.
+    a string specifying the sqlalchemy column to aggregate.
     """
     def get_query_column(self, entity):
         return func.array_agg(getattr(entity, self.entity_column))
 
-class Greatest(DatabaseColumn):
+class Greatest(SQLAlchemyColumn):
     """
     .. note::
 
@@ -545,12 +545,12 @@ class Greatest(DatabaseColumn):
     def __init__(self, *args, **kwargs):
         assert len(args) >= 2, 'You must supply at least 2 column names to be compared.'
         self.entity_columns = args
-        super(DatabaseColumn, self).__init__(**kwargs)
+        super(SQLAlchemyColumn, self).__init__(**kwargs)
 
     def get_query_column(self, entity):
         return func.greatest(*(getattr(entity, c) for c in self.entity_columns))
 
-class Least(DatabaseColumn):
+class Least(SQLAlchemyColumn):
     """
     .. note::
 
@@ -564,7 +564,7 @@ class Least(DatabaseColumn):
     def __init__(self, *args, **kwargs):
         assert len(args) >= 2, 'You must supply at least 2 column names to be compared.'
         self.entity_columns = args
-        super(DatabaseColumn, self).__init__(**kwargs)
+        super(SQLAlchemyColumn, self).__init__(**kwargs)
 
     def get_query_column(self, entity):
         return func.least(*(getattr(entity, c) for c in self.entity_columns))

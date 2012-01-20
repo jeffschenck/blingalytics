@@ -216,7 +216,7 @@ class Column(object):
     class as an attribute on the column class. For example, for a database
     column would define the following line:
     
-    source = DatabaseSource
+    source = SQLAlchemySource
     
     By default, columns handle two optional arguments:
     

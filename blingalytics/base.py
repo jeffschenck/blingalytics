@@ -145,7 +145,7 @@ class Report(object):
     Here is a relatively simple example of a report definition::
 
         from blingalytics import base, formats, widgets
-        from blingalytics.sources import database, derived, key_range
+        from blingalytics.sources import sqlalchemy, derived, key_range
 
         class RevenueReport(base.Report):
             display_name = 'Company Revenue'
@@ -153,23 +153,29 @@ class Report(object):
             category = 'business'
             cache_time = 60 * 60 * 3 # three hours
 
-            database_entity = 'project.models.reporting.RevenueModel'
+            sqlalchemy
+_entity = 'project.models.reporting.RevenueModel'
             keys = ('product_id', key_range.SourceKeyRange)
             columns = [
-                ('product_id', database.GroupBy('product_id',
+                ('product_id', sqlalchemy.GroupBy('product_id',
                     format=formats.Integer(label='ID', grouping=False), footer=False)),
-                ('product_name', database.Lookup('project.models.products.Product',
+                ('product_name', sqlalchemy
+.Lookup('project.models.products.Product',
                     'name', 'product_id', format=formats.String)),
-                ('revenue', database.Sum('purchase_revenue', format=formats.Bling)),
-                ('_cost_of_revenue', database.First('product_cost')),
+                ('revenue', sqlalchemy
+.Sum('purchase_revenue', format=formats.Bling)),
+                ('_cost_of_revenue', sqlalchemy
+.First('product_cost')),
                 ('gross_margin', derived.Value(
                     lambda row: (row['revenue'] - row['_cost_of_revenue']) * \\
                     Decimal('100.00') / row['revenue'], format=formats.Bling)),
             ]
             filters = [
-                ('delivered', database.QueryFilter(
+                ('delivered', sqlalchemy
+.QueryFilter(
                     lambda entity: entity.is_delivered == True)),
-                ('online_only', database.QueryFilter(
+                ('online_only', sqlalchemy
+.QueryFilter(
                     lambda entity, user_input: entity.is_online_purchase == user_input,
                     widget=widgets.Checkbox(label='Online Purchase'))),
             ]
