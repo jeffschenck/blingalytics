@@ -5,7 +5,8 @@ from blingalytics import widgets
 from blingalytics.sources import merge
 from mock import Mock
 
-from test import entities, reports
+from test import reports_sqlalchemy
+from test import support_sqlalchemy
 
 
 class TestMergeSource(unittest.TestCase):
@@ -15,10 +16,10 @@ class TestMergeSource(unittest.TestCase):
             {'_bling_id': 1, 'user_id': 1, 'user_is_active': True, 'num_widgets': 2, '_sum_widget_price': Decimal('6.00'), 'average_widget_price': Decimal('3.00')},
             {'_bling_id': 2, 'user_id': 2, 'user_is_active': False, 'num_widgets': 10, '_sum_widget_price': Decimal('100.00'), 'average_widget_price': Decimal('10.00')},
         ]
-        self.report = reports.BasicMergeReport(cache)
+        self.report = reports_sqlalchemy.BasicMergeReport(cache)
 
     def test_merge_source(self):
-        id1, id2 = entities.Compare(), entities.Compare()
+        id1, id2 = support_sqlalchemy.Compare(), support_sqlalchemy.Compare()
         self.report.clean_user_inputs(include='1', user_is_active='0')
         source = merge.MergeSource(self.report)
         self.assertEqual(list(source.get_rows([], self.report.clean_inputs)), [

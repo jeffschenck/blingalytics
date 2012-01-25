@@ -1,7 +1,5 @@
-from datetime import date
-
 from blingalytics import base, formats, widgets
-from blingalytics.sources import derived, key_range, merge, sqlalchemy_orm, static
+from blingalytics.sources import derived, key_range, merge, sqlalchemy_orm
 
 
 ACTIVE_USER_CHOICES = (
@@ -10,16 +8,8 @@ ACTIVE_USER_CHOICES = (
     (False, 'Inactive'),
 )
 
-class SuperBasicReport(base.Report):
-    filters = []
-    keys = ('id', key_range.EpochKeyRange(date(2011, 1, 1), date(2011, 1, 3)))
-    columns = [
-        ('id', static.Value(1, format=formats.Integer)),
-    ]
-    default_sort = ('id', 'desc')
-
 class BasicDatabaseReport(base.Report):
-    sqlalchemy_entity = 'test.entities.AllTheData'
+    sqlalchemy_entity = 'test.support_sqlalchemy.AllTheData'
     filters = [
         ('user_is_active', sqlalchemy_orm.QueryFilter(lambda entity, user_input: entity.user_is_active == user_input if user_input is not None else None,
             widget=widgets.Select(label='User Is Active', choices=ACTIVE_USER_CHOICES))),

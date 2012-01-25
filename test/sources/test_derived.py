@@ -4,12 +4,12 @@ import unittest
 from blingalytics.sources import derived
 from mock import Mock
 
-from test import reports
+from test import reports_sqlalchemy
 
 
 class TestDerivedSource(unittest.TestCase):
     def setUp(self):
-        self.report = reports.BasicDatabaseReport(Mock())
+        self.report = reports_sqlalchemy.BasicDatabaseReport(Mock())
 
     def test_derived_source(self):
         source = derived.DerivedSource(self.report)

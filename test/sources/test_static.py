@@ -3,12 +3,12 @@ import unittest
 from blingalytics.sources import static
 from mock import Mock
 
-from test import reports
+from test import reports_basic
 
 
 class TestStaticSource(unittest.TestCase):
     def setUp(self):
-        self.report = reports.SuperBasicReport(Mock())
+        self.report = reports_basic.SuperBasicReport(Mock())
 
     def test_static_source(self):
         source = static.StaticSource(self.report)

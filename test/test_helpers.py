@@ -4,14 +4,14 @@ import unittest
 from blingalytics import base, caches, helpers
 from mock import Mock
 
-from test.reports import BasicDatabaseReport, SuperBasicReport
+from test import reports_basic, reports_sqlalchemy
 
 
 class TestFrontendHelpers(unittest.TestCase):
     def setUp(self):
-        report = BasicDatabaseReport(helpers.DEFAULT_CACHE)
+        report = reports_sqlalchemy.BasicDatabaseReport(helpers.DEFAULT_CACHE)
         report.kill_cache(full=True)
-        report = SuperBasicReport(helpers.DEFAULT_CACHE)
+        report = reports_basic.SuperBasicReport(helpers.DEFAULT_CACHE)
         report.kill_cache(full=True)
         self.mock_runner = Mock()
         self.mock_cache = Mock(spec=caches.Cache)

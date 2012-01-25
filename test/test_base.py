@@ -6,7 +6,7 @@ import blingalytics
 from blingalytics import base, caches, formats, widgets
 from mock import Mock
 
-from test import reports
+from test import reports_sqlalchemy
 
 
 class TestReportUtilities(unittest.TestCase):
@@ -57,7 +57,7 @@ class TestReportUtilities(unittest.TestCase):
 class TestReportBase(unittest.TestCase):
     def setUp(self):
         self.mock_cache = Mock(spec=caches.Cache)
-        self.report = reports.BasicDatabaseReport(self.mock_cache)
+        self.report = reports_sqlalchemy.BasicDatabaseReport(self.mock_cache)
 
     def test_unique_ids(self):
         # Repeatable
