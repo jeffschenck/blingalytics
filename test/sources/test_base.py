@@ -31,7 +31,7 @@ class TestSourceBases(unittest.TestCase):
     def test_footer_incrementing(self):
         col = sources.Column()
         self.assert_(isinstance(col.format, formats.Hidden))
-        self.assertEqual(col.sort_alpha, True)
+        self.assertEqual(col.sort_alpha, False)
         self.assert_(col.footer is True)
         self.assertEqual(col.increment_footer(10, 2), 12)
         self.assertEqual(col.increment_footer(10, None), 10)

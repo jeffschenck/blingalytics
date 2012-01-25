@@ -347,7 +347,6 @@ class TestWidgets(unittest.TestCase):
         self.assertEqual(widget.form_name, 'report_widget')
         self.assertEqual(widget.clean(''), None)
         self.assertEqual(widget.clean(12), 12)
-        self.assertRaises(NotImplementedError, widget.render)
 
         # With required
         widget = widgets.Widget(required=True)

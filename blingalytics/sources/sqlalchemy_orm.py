@@ -1,12 +1,12 @@
 """
-The sqlalchemy source provides an interface for querying data from a table in
-the database.
+The sqlalchemy_orm source provides an interface for querying data from a table
+in the database.
 
 .. note::
 
-    The sqlalchemy source requires SQLAlchemy to be installed and connected to
-    your database. It also expects your tables to be described using Elixir.
-    See :doc:`/install`.
+    The sqlalchemy_orm source requires SQLAlchemy to be installed and
+    connected to your database. It also expects your tables to be described
+    using Elixir. See :doc:`/install`.
 
 The source intentionally does not do any joins for performance reasons.
 Because the reports will often be run over very large data sets, we want to be
@@ -29,8 +29,9 @@ of data from another table, which you can do with the :class:`Lookup` column.
 You can also use the :doc:`/sources/merge` to combine the results of two or
 more reports over two or more database tables.
 
-When using columns from the sqlalchemy source, you'll be expected to provide
-an extra report attribute to specify which table to pull the data from:
+When using columns from the sqlalchemy_orm source, you'll be expected to
+provide an extra report attribute to specify which table to pull the data
+from:
 
 * ``sqlalchemy_entity``: This report attribute specifies the database table to
   query. It should be specified as a dotted-path string pointing to an Elixir
@@ -267,11 +268,11 @@ class QueryFilter(sources.Filter):
     ``sqlalchemy.sql.expression._BinaryExpression`` object. You will generally
     build these in a lambda like so::
 
-        sqlalchemy.QueryFilter(lambda entity: entity.is_active == True)
+        sqlalchemy_orm.QueryFilter(lambda entity: entity.is_active == True)
 
     Or, with a user input widget::
 
-        sqlalchemy.QueryFilter(
+        sqlalchemy_orm.QueryFilter(
             lambda entity, user_input: entity.user_id.in_(user_input),
             widget=Autocomplete(multiple=True))
 
@@ -308,7 +309,7 @@ class ColumnTransform(sources.Filter):
     the epoch and want to transform it to the number of days since the epoch,
     with a given number of hours offset for timezone, you can use::
 
-        sqlalchemy.ColumnTransform(
+        sqlalchemy_orm.ColumnTransform(
             lambda column, user_input: column.op('+')(user_input).op('/')(24),
             columns=['purchase_time', 'user_last_login_time'],
             widget=widgets.Select(choices=TIMEZONE_CHOICES))
@@ -372,7 +373,7 @@ class Lookup(sources.Column):
 
     For example::
 
-        sqlalchemy.Lookup('project.models.Publisher', 'name', 'publisher_id',
+        sqlalchemy_orm.Lookup('project.models.Publisher', 'name', 'publisher_id',
             format=formats.String)
 
     Because the lookups are only done by primary key and are bulked up into
