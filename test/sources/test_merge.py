@@ -5,8 +5,7 @@ from blingalytics import widgets
 from blingalytics.sources import merge
 from mock import Mock
 
-from test import reports_sqlalchemy
-from test import support_sqlalchemy
+from test import reports_sqlalchemy, support_base, support_sqlalchemy
 
 
 class TestMergeSource(unittest.TestCase):
@@ -19,7 +18,7 @@ class TestMergeSource(unittest.TestCase):
         self.report = reports_sqlalchemy.BasicMergeReport(cache)
 
     def test_merge_source(self):
-        id1, id2 = support_sqlalchemy.Compare(), support_sqlalchemy.Compare()
+        id1, id2 = support_base.Compare(), support_base.Compare()
         self.report.clean_user_inputs(include='1', user_is_active='0')
         source = merge.MergeSource(self.report)
         self.assertEqual(list(source.get_rows([], self.report.clean_inputs)), [

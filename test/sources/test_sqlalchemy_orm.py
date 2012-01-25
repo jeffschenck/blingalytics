@@ -5,8 +5,7 @@ from blingalytics import widgets
 from blingalytics.sources import sqlalchemy_orm
 from mock import Mock
 
-from test import reports_sqlalchemy
-from test import support_sqlalchemy
+from test import reports_sqlalchemy, support_base, support_sqlalchemy
 
 
 class TestSQLAlchemySource(unittest.TestCase):
@@ -16,7 +15,7 @@ class TestSQLAlchemySource(unittest.TestCase):
 
     def test_sqlalchemy_source(self):
         source = sqlalchemy_orm.SQLAlchemySource(self.report)
-        id1, id2 = support_sqlalchemy.Compare(), support_sqlalchemy.Compare()
+        id1, id2 = support_base.Compare(), support_base.Compare()
         self.assertEqual(list(source.get_rows([], {'user_is_active': None})), [
             ((id1,), {'_sum_widget_price': Decimal('7.02'), 'user_id': 1, 'num_widgets': 3, 'user_is_active': True}),
             ((id2,), {'_sum_widget_price': Decimal('50.00'), 'user_id': 2, 'num_widgets': 1, 'user_is_active': False}),

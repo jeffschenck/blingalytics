@@ -33,9 +33,10 @@ if __name__ == '__main__':
         'test_base',
         'test_helpers',
         'sources.test_base',
-        'sources.test_sqlalchemy_orm',
         'sources.test_derived',
+        'sources.test_django_orm',
         'sources.test_merge',
+        'sources.test_sqlalchemy_orm',
         'sources.test_static',
     ])
     result = unittest.TextTestRunner(verbosity=1).run(suite)
