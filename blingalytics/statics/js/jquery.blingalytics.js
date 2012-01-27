@@ -102,7 +102,7 @@
                 });
               } else {
                 var footer_tds = table.find('tfoot th');
-                for (var i = 0; i < data.footer; i++) {
+                for (var i = 0; i < data.footer.length; i++) {
                   footer_tds.eq(i).html(data.footer[i]);
                 }
                 fnCallback(data);
