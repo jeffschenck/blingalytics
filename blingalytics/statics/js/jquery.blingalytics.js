@@ -3,7 +3,8 @@
   jQuery.fn.blingalytics = function(options) {
     var settings = {
       'url': '/report/',
-      'reportCodeName': 'report'
+      'reportCodeName': 'report',
+      'callback': $.noop
     };
     if (options) $.extend(settings, options);
 
@@ -66,6 +67,32 @@
         );
         container.append(table);
 
+        // Callback for custom handling of server data
+        function fnServerData(sSource, aoData, fnCallback) {
+          var url = sSource + '&' + widgets_container.find('input, select, textarea').serialize();
+          $.getJSON(url, aoData, function(data) {
+            if (data.poll) {
+              setTimeout(fnServerData, 500);
+            } else if (data.errors.length) {
+              errors_ul.empty();
+              for (var i = 0; i < data.errors.length; i++) {
+                errors_ul.append('<li>' + data.errors[i] + '</li>');
+              }
+              fnCallback({
+                'iTotalRecords': 0,
+                'iTotalDisplayRecords': 0,
+                'aaData': []
+              });
+            } else {
+              var footer_tds = table.find('tfoot th');
+              for (var i = 0; i < data.footer.length; i++) {
+                footer_tds.eq(i).html(data.footer[i]);
+              }
+              fnCallback(data);
+            }
+          });
+        }
+
         // Init the datatable widget
         var datatable = table.dataTable({
           aoColumnDefs: columns,
@@ -87,28 +114,7 @@
             }
             return nRow;
           },
-          fnServerData: function(sSource, aoData, fnCallback) {
-            var url = sSource + '&' + widgets_container.find('input, select, textarea').serialize();
-            $.getJSON(url, aoData, function(data) {
-              if (data.errors.length) {
-                errors_ul.empty();
-                for (var i = 0; i < data.errors.length; i++) {
-                  errors_ul.append('<li>' + data.errors[i] + '</li>');
-                }
-                fnCallback({
-                  'iTotalRecords': 0,
-                  'iTotalDisplayRecords': 0,
-                  'aaData': []
-                });
-              } else {
-                var footer_tds = table.find('tfoot th');
-                for (var i = 0; i < data.footer.length; i++) {
-                  footer_tds.eq(i).html(data.footer[i]);
-                }
-                fnCallback(data);
-              }
-            });
-          },
+          fnServerData: fnServerData,
           fnHeaderCallback: function(nHead, aasData, iStart, iEnd, aiDisplay) {
             // Fix missing header sorting classes
             var head = $(nHead);
@@ -116,6 +122,9 @@
             head.find('th:has(.ui-icon-triangle-1-n, .ui-icon-triangle-1-s)').addClass('sorting');
           }
         });
+
+        // Done initiating, callback time
+        settings.callback();
       });
     });
   };
