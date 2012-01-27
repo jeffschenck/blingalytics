@@ -46,6 +46,9 @@ class Value(DerivedColumn):
     a derived column, as opposed to simply summing or averaging the values in
     the column. If one of the columns involved in the derive function does not
     return a footer, this will return a total.
+
+    If you would prefer the column average or sum for the footer, simply
+    specify ``footer='sum'`` or ``footer='average'`` when defining the column.
     """
     def __init__(self, derive_func, **kwargs):
         self.derive_func = derive_func
@@ -60,8 +63,41 @@ class Value(DerivedColumn):
         except DIVISION_BY_ZERO:
             return decimal.Decimal('0.00')
 
+    def increment_footer(self, total, cell):
+        # If we want an average or a sum, increment
+        if self.footer == 'average':
+            if total:
+                total, count = total
+            else:
+                total, count = None, 0
+        if self.footer in ('sum', 'average'):
+            new_total = None
+            if type(total) in sources.ADD_TYPES:
+                if type(cell) in sources.ADD_TYPES:
+                    new_total = total + cell
+                else:
+                    new_total = total
+            else:
+                if type(cell) in sources.ADD_TYPES:
+                    new_total = cell
+        if self.footer == 'average':
+            return (new_total, count + 1)
+        if self.footer == 'sum':
+            return new_total
+        return None
+
     def finalize_footer(self, total, footer):
-        # The footer is the derive function run over the other footer columns
+        # If doing an average or sum footer, calculate it
+        if self.footer == 'average':
+            if total and total[0] is not None and total[1]:
+                total, count = total
+                return decimal.Decimal(str(total)) / decimal.Decimal(count)
+            else:
+                return decimal.Decimal(0)
+        if self.footer == 'sum':
+            return total
+
+        # Otherwise, use the derive function over the other footer columns
         if self.footer:
             try:
                 return self.derive_func(footer)
