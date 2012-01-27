@@ -45,7 +45,8 @@ import itertools
 
 from django.db import models
 from django.db.models.aggregates import Aggregate
-from django.db.models.sql.aggregates import Aggregate as SQLAggregate
+from django.db.models.sql.aggregates import Aggregate as SQLAggregate, \
+    ordinal_aggregate_field, computed_aggregate_field
 
 from blingalytics import sources
 
@@ -462,6 +463,12 @@ class Avg(DjangoORMColumn):
 # http://groups.google.com/group/django-users/browse_thread/thread/bd5a6b329b009cfa
 # https://code.djangoproject.com/browser/django/trunk/django/db/models/aggregates.py#L26
 # https://code.djangoproject.com/browser/django/trunk/django/db/models/sql/aggregates.py
+
+NON_MODIFY_FIELDS = ['BooleanField', 'CharField',
+    'CommaSeparatedIntegerField', 'EmailField', 'FileField', 'FilePathField',
+    'ImageField', 'IPAddressField', 'GenericIPAddressField',
+    'NullBooleanField', 'SlugField', 'TextField', 'URLField', 'XMLField',]
+
 class FirstAggregate(Aggregate):
     name = 'First'
     def add_to_query(self, query, alias, col, source, is_summary):
@@ -470,3 +477,20 @@ class FirstAggregate(Aggregate):
 
 class SQLFirstAggregate(SQLAggregate):
     sql_function = 'FIRST'
+    def __init__(self, col, source=None, is_summary=False, **extra):
+        self.col = col
+        self.source = source
+        self.is_summary = is_summary
+        self.extra = extra
+        tmp = self
+        while tmp and isinstance(tmp, SQLAggregate):
+            if getattr(tmp, 'is_ordinal', False):
+                tmp = ordinal_aggregate_field
+            elif getattr(tmp, 'is_computed', False):
+                tmp = computed_aggregate_field
+            else:
+                tmp = tmp.source
+        self.field = tmp
+        # Klugy hack to get string columns to output strings, not coerce to floats
+        if self.field.get_internal_type() in NON_MODIFY_FIELDS:
+            self.field.get_internal_type = lambda: 'DecimalField'
