@@ -195,6 +195,7 @@ def _query_iterator(query, page=1000):
     # into memory at once
     start = 0
     while True:
+        i = 0
         for i, result in enumerate(query.all()[start:start + page]):
             yield result
         if i < page - 1:
