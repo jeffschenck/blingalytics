@@ -31,7 +31,7 @@
           columns.push({
             'bSearchable': false,
             'bSortable': headers[i].sortable,
-            'sClass': 'hello',
+            'sClass': '',
             'sName': headers[i].key,
             'sTitle': headers[i].label,
             'aTargets': [i]
