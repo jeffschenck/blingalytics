@@ -1,12 +1,9 @@
 import json
 
 from blingalytics import get_report_by_code_name
-from blingalytics.caches import local_cache
 
 
-DEFAULT_CACHE = local_cache.LocalCache()
-
-def report_response(params, runner=None, cache=DEFAULT_CACHE):
+def report_response(params, runner=None, cache=None):
     """
     This frontend helper function is meant to be used in your
     request-processing code to handle all AJAX responses to the Blingalytics
@@ -34,6 +31,11 @@ def report_response(params, runner=None, cache=DEFAULT_CACHE):
         ``/tmp/blingalytics_cache``. If you would like to use a different
         cache, simply provide the cache instance.
     """
+    # Default cache if none specified (only load sqlite3 if using it)
+    if not cache:
+        from blingalytics.caches import local_cache
+        cache = local_cache.LocalCache()
+
     # Find and instantitate the report class
     params = dict((k, v) for k, v in params.items())
     report_code_name = params.pop('report', None)
