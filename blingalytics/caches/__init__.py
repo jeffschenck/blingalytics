@@ -10,6 +10,8 @@ filesystem. However, it cannot handle concurrent connections and is generally
 a poor choice outside of the development environment. At the moment, the
 preferred choice for deployment is :doc:`/caches/redis_cache`.
 """
+from functools import wraps
+
 
 class InstanceLockError(Exception):
     """Cannot secure a lock on writing the instance to cache."""
@@ -21,6 +23,12 @@ class InstanceIncompleteError(Exception):
     """The instance has not yet finished being created in cache."""
 
 class Cache(object):
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
     def create_instance(self, report_id, instance_id, rows, footer, expire):
         raise NotImplementedError
 
@@ -47,3 +55,24 @@ class Cache(object):
 
     def instance_footer(self, report_id, instance_id):
         raise NotImplementedError
+
+def cache_connection(func):
+    """
+    Function decorator to run the function within the context of the cache.
+    
+    Will look for the cache first as a kwarg to the function named `cache`,
+    then as the attribute `self.cache`. If neither is found, it will be an
+    error.
+    """
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        if 'cache' in kwargs:
+            cache = kwargs['cache']
+        elif args and hasattr(args[0], 'cache'):
+            cache = args[0].cache
+        else:
+            raise ValueError('Could not find cache as keyword argument or '
+                'on self to create the cache context.')
+        with cache:
+            return func(*args, **kwargs)
+    return wrapped

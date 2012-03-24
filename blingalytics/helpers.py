@@ -1,8 +1,10 @@
 import json
 
 from blingalytics import get_report_by_code_name
+from blingalytics.caches import cache_connection
 
 
+@cache_connection
 def report_response(params, runner=None, cache=None):
     """
     This frontend helper function is meant to be used in your

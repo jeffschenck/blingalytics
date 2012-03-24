@@ -25,6 +25,7 @@ import itertools
 import re
 
 from blingalytics import sources, widgets
+from blingalytics.caches import cache_connection
 
 
 DEFAULT_CACHE_TIME = 60 * 30
@@ -398,6 +399,7 @@ class Report(object):
         # Return the finalized footer
         return self._footer
 
+    @cache_connection
     def run_report(self):
         """
         Processes the report data and stores it in cache.
@@ -413,6 +415,7 @@ class Report(object):
             self._get_rows(), self._get_footer, self.cache_time)
         self.report_finalize()
 
+    @cache_connection
     def kill_cache(self, full=False):
         """
         By default, this removes or invalidates (depending on the cache store
@@ -428,6 +431,7 @@ class Report(object):
             return
         self.cache.kill_instance_cache(*self.unique_id)
 
+    @cache_connection
     def is_report_started(self):
         """
         If :meth:`run_report` is currently running, this returns ``True``;
@@ -435,6 +439,7 @@ class Report(object):
         """
         return self.cache.is_instance_started(*self.unique_id)
 
+    @cache_connection
     def is_report_finished(self):
         """
         If :meth:`run_report` has completed and there is a current cached copy
@@ -442,12 +447,14 @@ class Report(object):
         """
         return self.cache.is_instance_finished(*self.unique_id)
 
+    @cache_connection
     def report_row_count(self):
         """
         Returns the total number of rows in this report instance.
         """
         return self.cache.instance_row_count(*self.unique_id)
 
+    @cache_connection
     def report_timestamp(self):
         """
         Returns the timestamp when the report instance was originally computed
@@ -493,6 +500,7 @@ class Report(object):
             header_row.append(header_info)
         return header_row
 
+    @cache_connection
     def report_rows(self, selected_rows=None, sort=None, limit=None, offset=0, format='html'):
         """
         Returns the requested rows for the report from cache. There are a
@@ -551,6 +559,7 @@ class Report(object):
         """
         [c.finalize() for c in self.columns_dict.values()]
 
+    @cache_connection
     def report_footer(self, format='html'):
         """
         Returns the computed footer row for the report. There is one argument

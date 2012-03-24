@@ -41,7 +41,22 @@ class RedisCache(caches.Cache):
         
         Defaults to localhost:6379 and database 0.
         """
-        self.conn = redis.Redis(**kwargs)
+        self.conn_kwargs = kwargs
+        self.conn = None
+        self._context_depth = 0
+
+    def __enter__(self):
+        # Track number of nested contexts so you can nest as far as you want
+        # and still share just the one connection
+        if self._context_depth == 0:
+            self.conn = redis.Redis(**self.conn_kwargs)
+        self._context_depth += 1
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        # Close the connection if this is the last open context
+        self._context_depth -= 1
+        if self._context_depth == 0:
+            self.conn.connection_pool.disconnect()
 
     def create_instance(self, report_id, instance_id, rows, footer, expire):
         keys = set()
