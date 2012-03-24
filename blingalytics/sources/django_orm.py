@@ -143,9 +143,9 @@ class DjangoORMSource(sources.Source):
             for query_modifier in query_modifiers:
                 q = query_modifier(q)
             for query_filter in itertools.chain(table_wide_filters, query_filters):
-                filter_arg = query_filter.get_filter(model, clean_inputs)
-                if filter_arg:
-                    q = q.filter(**dict([filter_arg]))
+                filter_kwargs = query_filter.get_filter(model, clean_inputs)
+                if filter_kwargs:
+                    q = q.filter(**filter_kwargs)
             q = q.annotate(*query_columns)
 
             # Set up iteration over the query, with formatted rows
