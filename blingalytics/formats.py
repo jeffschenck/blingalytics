@@ -215,6 +215,66 @@ class Date(Format):
             return ''
         return value.strftime(locale.nl_langinfo(locale.D_FMT))
 
+class Time(Format):
+    """
+    Formats the column as a time. Expects the underlying data to be stored as
+    a Python ``time`` or ``datetime`` object. This time is formatted according
+    to the Python thread's ``locale`` setting. For example, in the ``'en_US'``
+    locale, a date is formatted as '01/23/2011'. By default, the column is
+    left-aligned.
+    """
+    sort_alpha = True
+
+    def format(self, value):
+        if value is None:
+            return ''
+        return value.strftime(locale.nl_langinfo(locale.T_FMT_AMPM))
+
+class TimeDelta(Format):
+    """
+    Formats the column as a timedelta. Expects the underlying data to be
+    stored as a Python ``timedelta`` object. This timedelta is formatted by
+    showing the two most significant of days, hours, minutes, and seconds. You
+    can override the standard English labels:
+
+    * ``unit_labels``: The labels, both singular and plural, for each unit.
+      Defaults to ('day', 'days', 'hour', 'hours', 'minute', 'minutes',
+      'second', 'seconds').
+
+    By default, the column is left-aligned.
+    """
+    sort_alpha = True
+
+    def __init__(self, unit_labels=('day', 'days', 'hour', 'hours', 'minute',
+            'minutes', 'second', 'seconds'), **kwargs):
+        self.unit_labels = unit_labels
+        super(TimeDelta, self).__init__(**kwargs)
+
+    def format(self, value):
+        if value is None:
+            return ''
+        chunks = [
+            (60 * 60 * 24, lambda n: self.unit_labels[0] if n == 1 else self.unit_labels[1]),
+            (60 * 60, lambda n: self.unit_labels[2] if n == 1 else self.unit_labels[3]),
+            (60, lambda n: self.unit_labels[4] if n == 1 else self.unit_labels[5]),
+            (1, lambda n: self.unit_labels[6] if n == 1 else self.unit_labels[7]),
+        ]
+        delta = value.days * 24 * 60 * 60 + value.seconds
+        if delta <= 0:
+            # No handling for negative timedletas for now...
+            return '0 %s' % self.unit_labels[7]
+        for i, (seconds, label) in enumerate(chunks):
+            count = delta // seconds
+            if count != 0:
+                break
+        formatted = '%d %s' % (count, label(count))
+        if i + 1 < len(chunks):
+            seconds2, label2 = chunks[i + 1]
+            count2 = (delta - (seconds * count)) // seconds2
+            if count2 != 0:
+                formatted += ', %d %s' % (count2, label2(count2))
+        return formatted
+
 class Month(Format):
     """
     Formats the column as a month. Expects the underlying values to be Python

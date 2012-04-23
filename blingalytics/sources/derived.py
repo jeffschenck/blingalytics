@@ -8,6 +8,7 @@ derived column to display the gross margin by performing the operation
 ``(net revenue / gross revenue * 100)``.
 """
 
+from datetime import timedelta
 import decimal
 
 from blingalytics import sources
@@ -91,6 +92,8 @@ class Value(DerivedColumn):
         if self.footer == 'average':
             if total and total[0] is not None and total[1]:
                 total, count = total
+                if isinstance(total, timedelta):
+                    return total / int(count)
                 return decimal.Decimal(str(total)) / decimal.Decimal(count)
             else:
                 return decimal.Decimal(0)

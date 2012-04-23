@@ -49,12 +49,13 @@ all filters accept the following optional standard arguments:
   :doc:`/widgets` for more.
 """
 
+from datetime import timedelta
 from decimal import Decimal
 
 from blingalytics import formats
 
 
-ADD_TYPES = (int, long, Decimal, float)
+ADD_TYPES = (int, long, Decimal, float, timedelta)
 
 class Source(object):
     """

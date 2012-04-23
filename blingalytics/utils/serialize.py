@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time as time_, timedelta
 from decimal import Decimal
 import itertools
 import time
@@ -28,6 +28,12 @@ def decode_dict(value):
         value.iteritems()
     ))
 
+def _time_encode(value):
+    if value.tzinfo:
+        raise ValueError('Can\'t encode time with tzinfo. Please convert to '
+            'a naive datetime in UTC first.')
+    return '%i.%i.%i.%i' % (value.hour, value.minute, value.second,
+        value.microsecond)
 encodings = {
     type(None): lambda value: 'None',
     int: lambda value: 'i_' + str(value),
@@ -37,8 +43,10 @@ encodings = {
     Decimal: lambda value: 'd_' + str(value),
     str: lambda value: 'u_' + _escape(value.encode('base-64')),
     unicode: lambda value: 'u_' + _escape(value.encode('utf-8').encode('base-64')),
-    datetime: lambda value: 't_%i.%06i'%(time.mktime(value.timetuple()), value.microsecond),
-    date: lambda value: 'a_%i'%(time.mktime(value.timetuple())),
+    datetime: lambda value: 't_%i.%06i' % (time.mktime(value.timetuple()), value.microsecond),
+    date: lambda value: 'a_%i' % time.mktime(value.timetuple()),
+    time_: lambda value: 'm_%s' % _time_encode(value),
+    timedelta: lambda value: 'e_%i.%i.%i' % (value.days, value.seconds, value.microseconds),
     tuple: lambda value: 'l_' + '_'.join(map(lambda a: _escape(encode(a)), value)),
     list: lambda value: 'l_' + '_'.join(map(lambda a: _escape(encode(a)), value)),
     dict: lambda value: 'h_' + '_'.join(map(lambda a: '%s:%s' % (_escape(encode(a[0])), _escape(encode(a[1]))), value.items())),
@@ -53,6 +61,8 @@ decodings = {
     'u': lambda value: _unescape(value).decode('base-64').decode('utf-8'),
     't': lambda value: datetime.fromtimestamp(float(value)),
     'a': lambda value: date.fromtimestamp(float(value)),
+    'm': lambda value: time_(*map(int, value.split('.'))),
+    'e': lambda value: timedelta(*map(int, value.split('.'))),
     'l': lambda value: map(decode, map(_unescape, value.split('_'))),
     'h': lambda value: dict(map(lambda a: map(decode, map(_unescape, a.split(':'))), value.split('_'))),
 }
