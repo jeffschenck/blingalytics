@@ -39,6 +39,11 @@ def report_response(params, runner=None, cache=None):
         cache = local_cache.LocalCache()
 
     # Find and instantitate the report class
+    if hasattr(params, 'iterlists'):
+        params = dict([
+            (key, (values if len(values) > 1 else values[0]))
+            for key, values in params.iterlists()
+        ])
     params = dict((k, v) for k, v in params.items())
     report_code_name = params.pop('report', None)
     if not report_code_name:
