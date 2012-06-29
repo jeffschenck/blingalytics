@@ -49,6 +49,7 @@ from django.db.models.sql.aggregates import Aggregate as SQLAggregate, \
     ordinal_aggregate_field, computed_aggregate_field
 
 from blingalytics import sources
+from blingalytics.utils.collections import OrderedDict
 
 
 QUERY_LIMIT = 1000
@@ -97,8 +98,47 @@ class DjangoORMSource(sources.Source):
 
         return query_filters
 
+    def _lookup_columns(self):
+        # Organize the Lookup columns by the name of the column providing its
+        # primary key and the entity primary key column.
+        categorized = OrderedDict()
+        for name, column in self._columns:
+            if isinstance(column, Lookup):
+                category = (column.django_model, column.pk_column)
+                columns = categorized.get(category, [])
+                columns.append((name, column))
+                categorized[category] = columns
+        return categorized
+
     def _perform_lookups(self, staged_rows):
-        ###
+        for (django_model, pk_column), lookups in self._lookup_columns().items():
+            # Collect the pk ids from the staged rows
+            pk_column_ids = [
+                row[pk_column] for key, row in staged_rows
+                if pk_column in row
+            ]
+            if not pk_column_ids:
+                continue
+
+            # Collate the lookup columns in to name list and lookup_attr list
+            names, columns = zip(*lookups)
+            columns = map(lambda column: column.lookup_field, columns)
+
+            # Construct the bulked query
+            column_names = ['pk'] + columns
+            q = django_model.objects.values_list(*column_names)
+            q = q.filter(pk__in=pk_column_ids)
+            lookup_values = dict(map(
+                lambda row: (row[0], dict(zip(names, row[1:]))),
+                q.all()
+            ))
+
+            # Update the staged rows with the looked-up values
+            for key, row in staged_rows:
+                looked_up_pk = row.get(pk_column)
+                if looked_up_pk:
+                    row.update(lookup_values.get(looked_up_pk, {}))
+
         return staged_rows
 
     def _queries(self, clean_inputs):
@@ -260,55 +300,40 @@ class DjangoORMColumn(sources.Column):
         # Returns a list of group-by Entity.columns for the query.
         return [], None
 
-# class Lookup(sources.Column):
-#     """
-#     This column allows you to "cheat" on the no-joins rule and look up a value
-#     from an arbitrary database table by primary key.
-# 
-#     This column expects several positional arguments to specify how to do the
-#     lookup:
-# 
-#     * The Elixir ``Entity`` object to look up from, specified as a
-#       dotted-string reference.
-#     * A string specifying the column attribute on the ``Entity`` you want to
-#       look up.
-#     * The name of the column in the report which is the primary key to use for
-#       the lookup in this other table.
-# 
-#     The primary key name on the lookup table is assumed to be 'id'. If it's
-#     different, you can use the keyword argument:
-#     
-#     * ``pk_attr``: The name of the primary key column in the lookup database
-#       table. Defaults to ``'id'``.
-# 
-#     For example::
-# 
-#         database.Lookup('project.models.Publisher', 'name', 'publisher_id',
-#             format=formats.String)
-# 
-#     Because the lookups are only done by primary key and are bulked up into
-#     just a few operations, this isn't as taxing on the database as it could
-#     be. But doing a lot of lookups on large datasets can get pretty
-#     resource-intensive, so it's best to be judicious.
-#     """
-#     source = DjangoORMSource
-# 
-#     def __init__(self, model, lookup_field, pk_column, pk_field='id', **kwargs):
-#         super(Lookup, self).__init__(**kwargs)
-#         module, name = model.rsplit('.', 1)
-#         module = __import__(module, globals(), locals(), [name])
-#         self.model = getattr(module, name)
-#         self._lookup_field = lookup_field
-#         self._pk_field = pk_field
-#         self.pk_column = pk_column
-# 
-#     @property
-#     def lookup_attr(self):
-#         return (self.model, self._lookup_field)
-# 
-#     @property
-#     def pk_attr(self):
-#         return (self.model, self._pk_field)
+class Lookup(sources.Column):
+    """
+    This column allows you to "cheat" on the no-joins rule and look up a value
+    from an arbitrary database table by primary key.
+
+    This column expects several positional arguments to specify how to do the
+    lookup:
+
+    * The Django model to look up from, specified as a dotted-string
+      reference.
+    * A string specifying the column attribute on the model you want to look
+      up.
+    * The name of the column in the report which is the primary key to use for
+      the lookup in this other table.
+
+    For example::
+
+        database.Lookup('project.publishers.models.Publisher', 'name',
+            'publisher_id', format=formats.String)
+
+    Because the lookups are only done by primary key and are bulked up into
+    just a few operations, this isn't as taxing on the database as it could
+    be. But doing a lot of lookups on large datasets can get pretty
+    resource-intensive, so it's best to be judicious.
+    """
+    source = DjangoORMSource
+
+    def __init__(self, django_model, lookup_field, pk_column, **kwargs):
+        super(Lookup, self).__init__(**kwargs)
+        module, name = django_model.rsplit('.', 1)
+        module = __import__(module, globals(), locals(), [name])
+        self.django_model = getattr(module, name)
+        self.lookup_field = lookup_field
+        self.pk_column = pk_column
 
 class GroupBy(DjangoORMColumn):
     """
