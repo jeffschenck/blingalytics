@@ -224,7 +224,7 @@ class Select(Widget):
         return '%s|%s|%s' % (self.form_name, dirty_inputs.get(self.form_name, ''), vals)
 
     def get_choices(self):
-        return self.choices() if callable(self.choices) else self.choices
+        return list(self.choices() if callable(self.choices) else self.choices)
 
     def render(self):
         value = self.default() if callable(self.default) else self.default

@@ -43,7 +43,7 @@ from collections import defaultdict
 import heapq
 import itertools
 
-from django.db import models
+from django.db import connection, models
 from django.db.models.aggregates import Aggregate
 from django.db.models.sql.aggregates import Aggregate as SQLAggregate, \
     ordinal_aggregate_field, computed_aggregate_field
@@ -53,6 +53,15 @@ from blingalytics.utils.collections import OrderedDict
 
 
 QUERY_LIMIT = 1000
+COLUMN_TRANSFORMS = {
+    'trunc_year': lambda column: 'CAST(%s AS DATE)' % connection.ops.date_trunc_sql('year', column),
+    'trunc_month': lambda column: 'CAST(%s AS DATE)' % connection.ops.date_trunc_sql('month', column),
+    'trunc_day': lambda column: 'CAST(%s as DATE)' % connection.ops.date_trunc_sql('day', column),
+    'extract_year': lambda column: connection.ops.date_extract_sql('year', column),
+    'extract_month': lambda column: connection.ops.date_extract_sql('month', column),
+    'extract_day': lambda column: connection.ops.date_extract_sql('day', column),
+    'extract_week_day': lambda column: connection.ops.date_extract_sql('week_day', column),
+}
 
 class DjangoORMSource(sources.Source):
     def __init__(self, report):
@@ -162,6 +171,7 @@ class DjangoORMSource(sources.Source):
             query_columns = []
             query_modifiers = []
             query_group_bys = []
+            query_extra_group_bys = {}
 
             # Collect the columns, modifiers, and group-bys
             query_names = {}
@@ -171,6 +181,11 @@ class DjangoORMSource(sources.Source):
                 query_group_bys += query_group_by
                 if query_name:
                     query_names[query_name] = name
+                query_extra_group_by = column.get_query_extra_group_bys(model)
+                query_group_bys += query_extra_group_by.keys()
+                if query_extra_group_by:
+                    query_names[query_extra_group_by.keys()[0]] = name
+                query_extra_group_bys.update(query_extra_group_by)
                 query_column, query_name = column.get_query_columns(model)
                 query_columns += query_column
                 if query_name:
@@ -178,7 +193,8 @@ class DjangoORMSource(sources.Source):
                 query_modifiers += column.get_query_modifiers(model)
 
             # Construct the query
-            q = model.objects.values(*query_group_bys)
+            q = model.objects.extra(select=query_extra_group_bys)
+            q = q.values(*query_group_bys)
             q = q.order_by(*query_group_bys)
             for query_modifier in query_modifiers:
                 q = query_modifier(q)
@@ -284,8 +300,11 @@ class DjangoORMColumn(sources.Column):
     """
     source = DjangoORMSource
 
-    def __init__(self, field_name, **kwargs):
+    def __init__(self, field_name, transform=None, **kwargs):
         self.field_name = field_name
+        if transform and transform not in COLUMN_TRANSFORMS:
+            raise ValueError('Not a valid transform type: %s' % transform)
+        self.transform = transform
         super(DjangoORMColumn, self).__init__(**kwargs)
 
     def get_query_columns(self, model):
@@ -299,6 +318,10 @@ class DjangoORMColumn(sources.Column):
     def get_query_group_bys(self, model):
         # Returns a list of group-by Entity.columns for the query.
         return [], None
+
+    def get_query_extra_group_bys(self, model):
+        # Returns a dict of names to extra select sql for special groupings
+        return {}
 
 class Lookup(sources.Column):
     """
@@ -363,7 +386,16 @@ class GroupBy(DjangoORMColumn):
         return []
 
     def get_query_group_bys(self, model):
+        if self.transform:
+            return [], None
         return [self.field_name], self.field_name
+
+    def get_query_extra_group_bys(self, model):
+        if not self.transform:
+            return {}
+        name = '{0.field_name}__{0.transform}'.format(self)
+        sql = COLUMN_TRANSFORMS[self.transform](self.field_name)
+        return {name: sql}
 
     def increment_footer(self, total, cell):
         # Never return a footer
