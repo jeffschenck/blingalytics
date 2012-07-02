@@ -65,6 +65,35 @@ class MonthKeyRange(sources.KeyRange):
             yield date
             date = (date + timedelta(days=31)).replace(day=1)
 
+class DayKeyRange(sources.KeyRange):
+    """
+    Ensures a key for every day between the start and end dates.
+    
+    This key range takes two positional arguments, start and end, which are
+    used to determine the range of days. These arguments can be datetimes,
+    which will be used as-is; or they can be strings, which will be considered
+    as references to named widgets, and the user input from the widget will be
+    used for the date.
+    """
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+
+    def _resolve_date(self, date, clean_inputs):
+        if isinstance(date, basestring):
+            # Resolve from the widget with the same name
+            return clean_inputs[date]
+        if isinstance(date, datetime):
+            return date.date()
+        return date
+
+    def get_row_keys(self, clean_inputs):
+        date = self._resolve_date(self.start, clean_inputs).date()
+        end = self._resolve_date(self.end, clean_inputs).date()
+        while date <= end:
+            yield date
+            date += timedelta(days=1)
+
 class EpochKeyRange(sources.KeyRange):
     """
     Ensures a key for every day between the start and end dates.
