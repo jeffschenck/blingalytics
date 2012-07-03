@@ -333,6 +333,41 @@ class Integer(Format):
             return value
         return str(value)
 
+class Decimal(Format):
+    """
+    Formats the data as a decimal number. This formatter accepts two
+    additional optional arguments:
+
+    * ``grouping``: Whether or not the formatted value should have groupings
+      (such as a comma in the U.S.) when output for HTML. For example, when
+      representing the number of pageviews per month, you would probably want
+      separators; however, for an database ID you probably don't. Defaults to
+      ``True``.
+    * ``precision``: The number of decimal places of precision that should be
+      kept for display. Defaults to ``1``.
+
+    This formatting is based on the Python thread-level ``locale`` setting.
+    For example, in the ``'en_US'`` locale, numbers will be formatted as
+    ``'1,234'`` for HTML or ``'1234'`` for CSV. By default, the column is
+    right-aligned.
+    """
+    default_align = 'right'
+    sort_alpha = False
+
+    def __init__(self, grouping=True, precision=1, **kwargs):
+        self.grouping = grouping
+        self.precision = precision
+        super(Decimal, self).__init__(**kwargs)
+
+    def format(self, value):
+        if value is None:
+            value = 0
+        try:
+            return locale.format('%%.%df' % self.precision, value,
+                grouping=self.grouping)
+        except TypeError:
+            raise TypeError('Value was not an integer: %r' % value)
+
 class Percent(Format):
     """
     Formats the data as a percent. This formatter accepts one additional
