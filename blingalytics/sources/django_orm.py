@@ -471,51 +471,42 @@ class Avg(DjangoORMColumn):
     def get_query_columns(self, model):
         return [models.Avg(self.field_name)], '%s__avg' % self.field_name
 
-# class TableKeyRange(sources.KeyRange):
-#     """
-#     This key range ensures that there is a key for every row in the given
-#     database table. This is primarily useful to ensure that you get every row
-#     ID from an external table in your report.
-# 
-#     This key range takes one positional argument, a dotted-string reference to
-#     the ``Entity`` to pull from. It also takes two optional keyword arguments:
-#     
-#     * ``pk_column``: The column name for the primary key to use from the
-#       table. Defaults to ``'id'``.
-#     * ``filters``: Either a single filter or a list of filters. These filters
-#       will be applied when pulling the keys from this database table.
-#     """
-#     def __init__(self, entity, pk_column='id', filters=[]):
-#         module, name = entity.rsplit('.', 1)
-#         module = __import__(module, globals(), locals(), [name])
-#         self.entity = getattr(module, name)
-#         self._pk_column = pk_column
-#         if isinstance(filters, sources.Filter):
-#             self.filters = [filters]
-#         else:
-#             self.filters = filters
-# 
-#     @property
-#     def pk_column(self):
-#         return getattr(self.entity, self._pk_column)
-# 
-#     def get_row_keys(self, clean_inputs):
-#         # Query for the primary keys
-#         q = elixir.session.query(self.pk_column)
-# 
-#         # Apply the filters to the query
-#         for query_filter in self.filters:
-#             filter_arg = query_filter.get_filter(self.entity, clean_inputs)
-#             if filter_arg is not None:
-#                 q = q.filter(filter_arg)
-#         q = q.order_by(self.pk_column)
-# 
-#         # Return the ids
-#         return itertools.imap(
-#             lambda row: row[0],
-#             q.yield_per(QUERY_LIMIT)
-#         )
+class TableKeyRange(sources.KeyRange):
+    """
+    This key range ensures that there is a key for every row in the given
+    database table. This is primarily useful to ensure that you get every row
+    ID from an external table in your report.
+    
+    This key range takes one required positional argument: the Django model to
+    pull from, specified as a dotted-string reference. It also takes one
+    optional keyword argument:
+    
+    * ``filters``: Either a single ``QueryFilter`` or a list of them. These
+      filters will be applied when pulling the keys from the table.
+    """
+    def __init__(self, django_model, filters=[]):
+        self.django_model = django_model
+        if isinstance(filters, sources.Filter):
+            self.filters = [filters]
+        else:
+            self.filters = filters
 
+    def get_row_keys(self, clean_inputs):
+        # Query for the primary keys
+        module, name = self.django_model.rsplit('.', 1)
+        module = __import__(module, globals(), locals(), [name])
+        model = getattr(module, name)
+        q = model.objects.values_list('pk', flat=True)
+
+        # Apply the filters to the query
+        for query_filter in self.filters:
+            filter_kwargs = query_filter.get_filter(model, clean_inputs)
+            if filter_kwargs:
+                q = q.filter(**filter_kwargs)
+        q = q.order_by('pk')
+
+        # Return the ids
+        return _query_iterator(q)
 
 # For construction of custom aggregate, see the following:
 # http://groups.google.com/group/django-users/browse_thread/thread/bd5a6b329b009cfa
