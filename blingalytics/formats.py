@@ -454,7 +454,7 @@ class Boolean(Format):
     
     This column is left-aligned by default.
     """
-    sort_alpha = False
+    sort_alpha = True
 
     def __init__(self, terms=('Yes', 'No', ''), **kwargs):
         self.true_term, self.false_term, self.none_term = terms
