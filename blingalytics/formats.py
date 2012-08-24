@@ -52,6 +52,7 @@ import json
 import locale
 
 from blingalytics.utils import epoch
+from blingalytics.utils import timezones
 
 
 class Format(object):
@@ -207,12 +208,23 @@ class Date(Format):
     to the Python thread's ``locale`` setting. For example, in the ``'en_US'``
     locale, a date is formatted as '01/23/2011'. By default, the column is
     left-aligned.
+
+    * ``localize``: A function that takes the ``datetime`` object and
+      localizes it into your desired timezone.
     """
     sort_alpha = True
+
+    def __init__(self, localize=None, **kwargs):
+        self.localize = localize
+        super(Date, self).__init__(**kwargs)
 
     def format(self, value):
         if value is None:
             return ''
+        if self.localize:
+            if not value.tzinfo:
+                value = value.replace(tzinfo=timezones.utc_tzinfo)
+            value = self.localize(value)
         return value.strftime(locale.nl_langinfo(locale.D_FMT))
 
 class Time(Format):
@@ -222,12 +234,23 @@ class Time(Format):
     to the Python thread's ``locale`` setting. For example, in the ``'en_US'``
     locale, a date is formatted as '01/23/2011'. By default, the column is
     left-aligned.
+
+    * ``localize``: A function that takes the ``datetime`` object and
+      localizes it into your desired timezone.
     """
     sort_alpha = True
+
+    def __init__(self, localize=None, **kwargs):
+        self.localize = localize
+        super(Time, self).__init__(**kwargs)
 
     def format(self, value):
         if value is None:
             return ''
+        if self.localize:
+            if not value.tzinfo:
+                value = value.replace(tzinfo=timezones.utc_tzinfo)
+            value = self.localize(value)
         return value.strftime(locale.nl_langinfo(locale.T_FMT_AMPM))
 
 class TimeDelta(Format):
