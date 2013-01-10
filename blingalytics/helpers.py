@@ -1,3 +1,5 @@
+import csv
+from cStringIO import StringIO
 import json
 
 from blingalytics import get_report_by_code_name
@@ -47,39 +49,80 @@ def report_response(params, runner=None, cache=None):
     params = dict((k, v) for k, v in params.items())
     report_code_name = params.pop('report', None)
     if not report_code_name:
-        return json.dumps({'errors': ['Report code name not specified.']})
+        return (json.dumps({'errors': ['Report code name not specified.']}),
+            'application/javascript', {})
     report_cls = get_report_by_code_name(report_code_name)
     if not report_cls:
-        return json.dumps({'errors': ['Specified report not found.']})
+        return (json.dumps({'errors': ['Specified report not found.']}),
+            'application/javascript', {})
     report = report_cls(cache)
 
     # Return immediately for metadata request
     if params.pop('metadata', False):
-        return json.dumps({
+        return (json.dumps({
             'errors': [],
             'widgets': report.render_widgets(),
             'header': report.report_header(),
             'default_sort': report.default_sort,
-        })
+        }), 'application/javascript', {})
 
     # Process user inputs
     errors = report.clean_user_inputs(**params)
     if errors:
-        return json.dumps({
+        return (json.dumps({
             'errors': [str(error) for error in errors],
-        })
+        }), 'application/javascript', {})
+
+    # Clear cache if requested
+    if params.get('killcache', False):
+        report.kill_cache()
+        return (json.dumps({
+            'errors': [],
+        }), 'application/javascript', {})
 
     # Run the report, either synchronously or not, if needed
     if not report.is_report_finished():
         if runner:
             if not report.is_report_started():
                 runner(report_code_name, params)
-            return json.dumps({
+            return (json.dumps({
                 'errors': [],
                 'poll': True,
-            })
+            }), 'application/javascript', {})
         else:
             report.run_report()
+
+    # Return full report as downloadable csv if format requested
+    if params.get('format') == 'csv':
+        if params.get('download', False):
+            output = StringIO()
+            writer = csv.writer(output)
+            writer.writerow([report.display_name])
+            writer.writerow(['Timestamp: %s' % report.report_timestamp()
+                .strftime('%m-%d-%Y %I:%M %p UTC')])
+            writer.writerow([])
+            header = report.report_header()
+            writer.writerow(filter(
+                lambda a: a is not None,
+                map(
+                    lambda a: a['label'] if not a.get('hidden') else None,
+                    header
+                )
+            ))
+            for row in report.report_rows(format='csv'):
+                writer.writerow(map(
+                    lambda a: a[1],
+                    filter(lambda a: not a[0].get('hidden'), zip(header, row))
+                ))
+            return (output.getvalue(), 'text/csv', {
+                'Content-Disposition': 'attachment; filename="%s.csv"' \
+                    % report.display_name
+            })
+        else:
+            return (json.dumps({
+                'errors': [],
+                'poll': False,
+            }), 'application/javascript', {})
 
     # Return report data
     offset = int(params.get('iDisplayStart'))
@@ -92,7 +135,7 @@ def report_response(params, runner=None, cache=None):
     sort_dir = str(params.get('sSortDir_0', report.default_sort[1]))
     sort = (sort_col, sort_dir)
     echo = int(params.get('sEcho'))
-    return json.dumps({
+    return (json.dumps({
         'errors': [],
         'poll': False,
         'iTotalRecords': report.report_row_count(),
@@ -100,4 +143,4 @@ def report_response(params, runner=None, cache=None):
         'sEcho': str(echo),
         'aaData': report.report_rows(sort=sort, limit=limit, offset=offset),
         'footer': report.report_footer(),
-    })
+    }), 'application/javascript', {})

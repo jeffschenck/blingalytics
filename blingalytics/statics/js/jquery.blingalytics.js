@@ -72,7 +72,9 @@
           var url = sSource + '&' + widgets_container.find('input, select, textarea').serialize();
           $.getJSON(url, aoData, function(data) {
             if (data.poll) {
-              setTimeout(fnServerData, 500);
+              setTimeout(function() {
+                fnServerData(sSource, aoData, fnCallback);
+              }, 500);
             } else if (data.errors.length) {
               errors_ul.empty();
               for (var i = 0; i < data.errors.length; i++) {
@@ -97,6 +99,7 @@
         var datatable = table.dataTable({
           aoColumnDefs: columns,
           sPaginationType: 'full_numbers',
+          sDom: '<"H"<"dataTables_options">lr>t<"F"ip>',
           bAutoWidth: false,
           bFilter: false,
           bJQueryUI: true,
@@ -122,6 +125,43 @@
             head.find('th:has(.ui-icon-triangle-1-n, .ui-icon-triangle-1-s)').addClass('sorting');
           }
         });
+
+        // Set up clear cache button
+        var clearCacheButton = $('<button class="btn btn-mini"><i class="icon-ban-circle"></i> Cache</button>');
+        clearCacheButton.click(function(e) {
+          if (clearCacheButton.hasClass('disabled')) { return }
+          clearCacheButton.addClass('disabled');
+          var url = datatable.fnSettings().sAjaxSource + '&' + widgets_container.find('input, select, textarea').serialize() + '&killcache=1';
+          $.getJSON(url, function(data) {
+            clearCacheButton.removeClass('disabled');
+          });
+        });
+        container.find('.dataTables_options').append(clearCacheButton);
+
+        // Set up export to csv button
+        var csvButton = $('<button class="btn btn-mini"><i class="icon-download"></i> CSV</button>');
+        function csvPoll() {
+          var url = datatable.fnSettings().sAjaxSource + '&' + widgets_container.find('input, select, textarea').serialize() + '&format=csv';
+          $.getJSON(url, function(data) {
+            if (data.poll) {
+              setTimeout(csvPoll, 500);
+            } else if (data.errors.length) {
+              errors_ul.empty();
+              for (var i = 0; i < data.errors.length; i++) {
+                errors_ul.append('<li>' + data.errors[i] + '</li>');
+              }
+            } else {
+              document.location.href = url + '&download=1';
+              csvButton.removeClass('disabled');
+            }
+          });
+        }
+        csvButton.click(function() {
+          if (csvButton.hasClass('disabled')) { return }
+          csvButton.addClass('disabled');
+          csvPoll();
+        });
+        container.find('.dataTables_options').append(csvButton);
 
         // Done initiating, callback time
         settings.callback();
