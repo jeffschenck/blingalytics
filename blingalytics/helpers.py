@@ -15,11 +15,14 @@ def report_response(params, runner=None, cache=None):
 
     In its most basic usage, you just pass in the request's GET parameters
     as a ``dict``. This will run the report, if required, and then pull the
-    appropriate data. It will be returned as a JSON string, which your
-    request-processing code should return as an AJAX response. This will vary
-    depending what web framework you're using, but it should be pretty simple.
-
-    The function also accepts two options:
+    appropriate data. It will return a tuple of three values:
+    
+    * The response body content, as a string
+    * The response mimetype, as a string
+    * A dict of header values to be sent in the response
+    
+    Your request-processing code should return the described response. The
+    function also accepts two options:
 
     ``runner`` *(optional)*
         If you want your report to run asynchronously so as not to tie up
