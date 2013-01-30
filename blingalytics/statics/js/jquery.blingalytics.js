@@ -4,7 +4,8 @@
     var settings = {
       'url': '/report/',
       'reportCodeName': 'report',
-      'callback': $.noop
+      'callback': $.noop,
+      'rowCallback': function(nRow, aData, iDisplayIndex) { return nRow; }
     };
     if (options) $.extend(settings, options);
 
@@ -115,7 +116,7 @@
             for (var i = 0; i < children.length; i++) {
               children[i].className += classes[i];
             }
-            return nRow;
+            return settings.rowCallback(nRow, aData, iDisplayIndex);
           },
           fnServerData: fnServerData,
           fnHeaderCallback: function(nHead, aasData, iStart, iEnd, aiDisplay) {
