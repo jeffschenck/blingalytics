@@ -3,4 +3,5 @@
 .DS_Store
 docs/_build/
 Blingalytics.egg-info
+MANIFEST.in
 
