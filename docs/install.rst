@@ -31,12 +31,8 @@ which may include:
 
 * Redis_
 * `redis-py`_
-* SQLAlchemy_
-* Elixir_
 
 .. _pip: http://www.pip-installer.org/
 .. _Python: http://www.python.org/
 .. _Redis: http://redis.io/
 .. _redis-py: https://github.com/andymccurdy/redis-py
-.. _SQLAlchemy: http://www.sqlalchemy.org/
-.. _Elixir: http://elixir.ematia.de/trac/wiki

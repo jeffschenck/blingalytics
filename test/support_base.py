@@ -1,3 +1,13 @@
+from mock import Mock
+
+
+def mock_cache():
+    mock_cache = Mock()
+    setattr(mock_cache, '__enter__', Mock())
+    setattr(mock_cache, '__exit__', Mock())
+    return mock_cache
+
+
 class Compare(object):
     """
     Value that compares equal for anything as long as it's always the same.

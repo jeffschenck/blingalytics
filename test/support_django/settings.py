@@ -1,3 +1,4 @@
+SECRET_KEY = 'abc123'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',

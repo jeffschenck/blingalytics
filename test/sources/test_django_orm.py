@@ -12,9 +12,10 @@ from blingalytics.sources import django_orm
 class TestDjangoSource(unittest.TestCase):
     def setUp(self):
         support_django.init_db_from_scratch()
-        self.report = reports_django.BasicDatabaseReport(Mock())
+        support_django.add_first_db_function()
+        self.report = reports_django.BasicDatabaseReport(support_base.mock_cache())
 
-    def test_sqlalchemy_source(self):
+    def test_django_source(self):
         source = django_orm.DjangoORMSource(self.report)
         id1, id2 = support_base.Compare(), support_base.Compare()
         self.assertEqual(list(source.get_rows([], {'user_is_active': None})), [
@@ -26,12 +27,12 @@ class TestDjangoSource(unittest.TestCase):
     #     # Straight up
     #     key_range = sqlalchemy_orm.TableKeyRange('test.support_sqlalchemy.AllTheData', pk_column='widget_id')
     #     self.assertEqual(set(key_range.get_row_keys([])), set([1, 2, 3, 4]))
-    # 
+    #
     #     # Now with filtering
     #     key_range = sqlalchemy_orm.TableKeyRange('test.support_sqlalchemy.AllTheData', pk_column='widget_id',
     #         filters=sqlalchemy_orm.QueryFilter(lambda entity: entity.id > 2))
     #     self.assertEqual(set(key_range.get_row_keys({})), set([3, 4]))
-    # 
+    #
     # def test_sqlalchemy_filters(self):
     #     # ColumnTransform functionality
     #     self.assertRaises(ValueError, sqlalchemy_orm.ColumnTransform, lambda column: column.op('+')(1))
@@ -45,7 +46,7 @@ class TestDjangoSource(unittest.TestCase):
     #     trans = fil.transform_column(support_sqlalchemy.AllTheData.id, {'widget': widget.clean(1)}).compile()
     #     self.assertEqual(str(trans), 'all_the_data.id + :id_1')
     #     self.assertEqual(trans.params['id_1'], 2)
-    # 
+    #
     #     # QueryFilter functionality
     #     fil = sqlalchemy_orm.QueryFilter(lambda entity: entity.id < 10)
     #     query_filter = fil.get_filter(support_sqlalchemy.AllTheData, {}).compile()
@@ -57,7 +58,7 @@ class TestDjangoSource(unittest.TestCase):
     #     query_filter = fil.get_filter(support_sqlalchemy.AllTheData, {'widget': widget.clean(0)}).compile()
     #     self.assertEqual(str(query_filter), 'all_the_data.id IN (:id_1, :id_2, :id_3)')
     #     self.assertEqual(set(query_filter.params.values()), set([1, 2, 3]))
-    # 
+    #
     # def test_sqlalchemy_columns(self):
     #     # Lookup functionality
     #     col = sqlalchemy_orm.Lookup('test.support_sqlalchemy.AllTheData', 'user_id', 'widget_id')
@@ -67,7 +68,7 @@ class TestDjangoSource(unittest.TestCase):
     #     self.assertEqual(col.pk_column, 'widget_id')
     #     col = sqlalchemy_orm.Lookup('test.support_sqlalchemy.AllTheData', 'user_id', 'widget_id', 'widget_id')
     #     self.assert_(col.pk_attr is support_sqlalchemy.AllTheData.widget_id)
-    # 
+    #
     #     # GroupBy
     #     col = sqlalchemy_orm.GroupBy('user_id')
     #     self.assert_(col.get_query_column(support_sqlalchemy.AllTheData) is support_sqlalchemy.AllTheData.user_id)
@@ -75,13 +76,13 @@ class TestDjangoSource(unittest.TestCase):
     #     self.assert_(col.get_query_group_bys(support_sqlalchemy.AllTheData)[0] is support_sqlalchemy.AllTheData.user_id)
     #     self.assertEqual(col.increment_footer(None, 10), None)
     #     self.assertEqual(col.finalize_footer(None, {'othercolumn': 'string'}), None)
-    # 
+    #
     #     # Sum
     #     col = sqlalchemy_orm.Sum('widget_price')
     #     self.assertEqual(
     #         str(col.get_query_column(support_sqlalchemy.AllTheData).compile()),
     #         'sum(all_the_data.widget_price)')
-    # 
+    #
     #     # Count
     #     col = sqlalchemy_orm.Count('user_id')
     #     self.assertEqual(
@@ -91,25 +92,25 @@ class TestDjangoSource(unittest.TestCase):
     #     self.assertEqual(
     #         str(col.get_query_column(support_sqlalchemy.AllTheData).compile()),
     #         'count(DISTINCT all_the_data.user_id)')
-    # 
+    #
     #     # First
     #     col = sqlalchemy_orm.First('widget_id')
     #     self.assertEqual(
     #         str(col.get_query_column(support_sqlalchemy.AllTheData).compile()),
     #         'first(all_the_data.widget_id)')
-    # 
+    #
     #     # BoolAnd
     #     col = sqlalchemy_orm.BoolAnd('user_is_active')
     #     self.assertEqual(
     #         str(col.get_query_column(support_sqlalchemy.AllTheData).compile()),
     #         'bool_and(all_the_data.user_is_active)')
-    # 
+    #
     #     # BoolOr
     #     col = sqlalchemy_orm.BoolOr('user_is_active')
     #     self.assertEqual(
     #         str(col.get_query_column(support_sqlalchemy.AllTheData).compile()),
     #         'bool_or(all_the_data.user_is_active)')
-    # 
+    #
     #     # ArrayAgg
     #     col = sqlalchemy_orm.ArrayAgg('widget_id')
     #     self.assertEqual(

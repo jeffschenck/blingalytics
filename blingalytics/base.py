@@ -33,7 +33,7 @@ DEFAULT_CACHE_TIME = 60 * 30
 def get_display_name(class_name):
     """
     Converts class names to a title case style.
-    
+
     For example, 'CelebrityApprovalReport' would become 'Celebrity Approval
     Report'.
     """
@@ -45,7 +45,7 @@ def get_display_name(class_name):
 def get_code_name(class_name):
     """
     Converts class names to a Pythonic code name style.
-    
+
     For example, 'CelebrityApprovalReport' would be converted to
     'celebrity_approval_report'.
     """
@@ -88,7 +88,7 @@ class Report(object):
     """
     To write a report, you subclass this base Report class and define your own
     attributes on it. The standard list of available attributes include:
-    
+
     ``category`` *(optional)*
         A string representing the category this report belongs to. The
         category is used by the get_reports_by_category function to group like
@@ -146,7 +146,7 @@ class Report(object):
     Here is a relatively simple example of a report definition::
 
         from blingalytics import base, formats, widgets
-        from blingalytics.sources import sqlalchemy_orm, derived, key_range
+        from blingalytics.sources import django_orm, derived, key_range
 
         class RevenueReport(base.Report):
             display_name = 'Company Revenue'
@@ -154,23 +154,23 @@ class Report(object):
             category = 'business'
             cache_time = 60 * 60 * 3 # three hours
 
-            sqlalchemy_entity = 'project.models.reporting.RevenueModel'
+            django_entity = 'project.reporting.models.RevenueModel'
             keys = ('product_id', key_range.SourceKeyRange)
             columns = [
-                ('product_id', sqlalchemy_orm.GroupBy('product_id',
+                ('product_id', django_orm.GroupBy('product_id',
                     format=formats.Integer(label='ID', grouping=False), footer=False)),
-                ('product_name', sqlalchemy_orm.Lookup('project.models.products.Product',
+                ('product_name', django_orm.Lookup('project.models.products.Product',
                     'name', 'product_id', format=formats.String)),
-                ('revenue', sqlalchemy_orm.Sum('purchase_revenue', format=formats.Bling)),
-                ('_cost_of_revenue', sqlalchemy_orm.First('product_cost')),
+                ('revenue', django_orm.Sum('purchase_revenue', format=formats.Bling)),
+                ('_cost_of_revenue', django_orm.First('product_cost')),
                 ('gross_margin', derived.Value(
                     lambda row: (row['revenue'] - row['_cost_of_revenue']) * \\
                     Decimal('100.00') / row['revenue'], format=formats.Bling)),
             ]
             filters = [
-                ('delivered', sqlalchemy_orm.QueryFilter(
+                ('delivered', django_orm.QueryFilter(
                     lambda entity: entity.is_delivered == True)),
-                ('online_only', sqlalchemy_orm.QueryFilter(
+                ('online_only', django_orm.QueryFilter(
                     lambda entity, user_input: entity.is_online_purchase == user_input,
                     widget=widgets.Checkbox(label='Online Purchase'))),
             ]
@@ -186,7 +186,7 @@ class Report(object):
 
     def __init__(self, cache, merge=False):
         self.cache = cache
-        
+
         # Grab an instance of each of the source types implied by the columns
         self.columns_dict = dict(self.columns)
         report_sources = set([c.source for c in self.columns_dict.values()])
@@ -215,7 +215,7 @@ class Report(object):
     def unique_id(self):
         """
         A unique string for this report with the given user inputs.
-        
+
         This string uniquely identifies the given report once the set of user
         inputs has been applied. This is used as a cache key prefix.
         """
@@ -523,7 +523,7 @@ class Report(object):
         * ``format``: The type of formatting to use when processing the
           output. The built-in options are ``'html'`` or ``'csv'``. Defaults
           to ``'html'``. This is discussed in more detail in :doc:`/formats`.
-        
+
         The rows are returned as a list of lists of values. The first column
         returned by Blingalytics for any report is always a hidden column
         specifying the row's internal cache ID.

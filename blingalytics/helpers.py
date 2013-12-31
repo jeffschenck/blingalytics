@@ -3,11 +3,15 @@ from cStringIO import StringIO
 import json
 
 from blingalytics import get_report_by_code_name
-from blingalytics.caches import cache_connection
+from blingalytics.caches import cache_connection, local_cache
+
+
+# Default cache if none specified (only load sqlite3 if using it)
+DEFAULT_CACHE = local_cache.LocalCache()
 
 
 @cache_connection
-def report_response(params, runner=None, cache=None):
+def report_response(params, runner=None, cache=DEFAULT_CACHE):
     """
     This frontend helper function is meant to be used in your
     request-processing code to handle all AJAX responses to the Blingalytics
@@ -16,11 +20,11 @@ def report_response(params, runner=None, cache=None):
     In its most basic usage, you just pass in the request's GET parameters
     as a ``dict``. This will run the report, if required, and then pull the
     appropriate data. It will return a tuple of three values:
-    
+
     * The response body content, as a string
     * The response mimetype, as a string
     * A dict of header values to be sent in the response
-    
+
     Your request-processing code should return the described response. The
     function also accepts two options:
 
@@ -38,11 +42,6 @@ def report_response(params, runner=None, cache=None):
         ``/tmp/blingalytics_cache``. If you would like to use a different
         cache, simply provide the cache instance.
     """
-    # Default cache if none specified (only load sqlite3 if using it)
-    if not cache:
-        from blingalytics.caches import local_cache
-        cache = local_cache.LocalCache()
-
     # Find and instantitate the report class
     if hasattr(params, 'iterlists'):
         params = dict([

@@ -34,7 +34,7 @@ an extra report attribute to specify which model to pull the data from:
 * ``django_model``: This report attribute specifies the database table to
   query. It should be specified as a dotted-path string pointing to a Django
   ``Model`` subclass. For example::
-  
+
       django_model = 'project.app.models.ReportInfluencer'
 
 """
@@ -85,7 +85,7 @@ class DjangoORMSource(sources.Source):
                 if report_filter.columns:
                     if report_filter.columns & filtered_columns:
                         raise ValueError('You cannot include the same column '
-                            'in more than one sqlalchemy filter.')
+                            'in more than one filter.')
                     elif report_filter.columns & key_columns:
                         raise ValueError('You cannot filter key columns '
                             'since they are used in every filter query. '
@@ -94,7 +94,7 @@ class DjangoORMSource(sources.Source):
                         filtered_columns |= report_filter.columns
                 query_filters[report_filter.columns].append(report_filter)
 
-        # Determine the list of unfiltered sqlalchemy columns
+        # Determine the list of unfiltered columns
         # (Exclude lookup columns)
         query_columns = [
             name for name, column in self._columns
@@ -440,7 +440,7 @@ class First(DjangoORMColumn):
         `PostgreSQL implementation`_.
 
     .. _PostgreSQL implementation: http://wiki.postgresql.org/wiki/First_(aggregate)
-    
+
     Performs a database first aggregation. The first argument should be a
     string specifying the database column to operate on.
     """
@@ -476,11 +476,11 @@ class TableKeyRange(sources.KeyRange):
     This key range ensures that there is a key for every row in the given
     database table. This is primarily useful to ensure that you get every row
     ID from an external table in your report.
-    
+
     This key range takes one required positional argument: the Django model to
     pull from, specified as a dotted-string reference. It also takes one
     optional keyword argument:
-    
+
     * ``filters``: Either a single ``QueryFilter`` or a list of them. These
       filters will be applied when pulling the keys from the table.
     """

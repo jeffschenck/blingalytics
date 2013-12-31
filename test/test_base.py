@@ -3,10 +3,10 @@ from decimal import Decimal
 import unittest
 
 import blingalytics
-from blingalytics import base, caches, formats, widgets
-from mock import Mock
+from blingalytics import base, formats, widgets
 
-from test import reports_sqlalchemy
+from test import reports_django
+from test.support_base import mock_cache
 
 
 class TestReportUtilities(unittest.TestCase):
@@ -56,8 +56,8 @@ class TestReportUtilities(unittest.TestCase):
 
 class TestReportBase(unittest.TestCase):
     def setUp(self):
-        self.mock_cache = Mock(spec=caches.Cache)
-        self.report = reports_sqlalchemy.BasicDatabaseReport(self.mock_cache)
+        self.mock_cache = mock_cache()
+        self.report = reports_django.BasicDatabaseReport(self.mock_cache)
 
     def test_unique_ids(self):
         # Repeatable

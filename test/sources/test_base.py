@@ -4,14 +4,14 @@ import unittest
 
 from blingalytics import formats, sources, widgets
 from blingalytics.sources import key_range
-from mock import Mock
 
 from test import reports_basic
+from test.support_base import mock_cache
 
 
 class TestSourceBases(unittest.TestCase):
     def setUp(self):
-        self.report = reports_basic.SuperBasicReport(Mock())
+        self.report = reports_basic.SuperBasicReport(mock_cache())
 
     def test_source_base(self):
         source = sources.Source(self.report)

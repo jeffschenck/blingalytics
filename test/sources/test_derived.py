@@ -2,14 +2,14 @@ from decimal import Decimal
 import unittest
 
 from blingalytics.sources import derived
-from mock import Mock
 
-from test import reports_sqlalchemy
+from test import reports_django
+from test.support_base import mock_cache
 
 
 class TestDerivedSource(unittest.TestCase):
     def setUp(self):
-        self.report = reports_sqlalchemy.BasicDatabaseReport(Mock())
+        self.report = reports_django.BasicDatabaseReport(mock_cache())
 
     def test_derived_source(self):
         source = derived.DerivedSource(self.report)
@@ -30,8 +30,7 @@ class TestDerivedSource(unittest.TestCase):
         self.assertEqual(col.get_derived_value({'x': None, 'y': Decimal('10.0')}), None)
         self.assertEqual(col.get_derived_value({'x': Decimal('5.0'), 'y': Decimal('0.0')}), Decimal('0.00'))
         self.assertEqual(col.get_derived_value({'x': 2, 'y': 0}), Decimal('0.00'))
-        self.assertEqual(col.increment_footer(None, Decimal('1.2')), Decimal('1.2'))
-        self.assertEqual(col.increment_footer(None, None), None)
+        self.assertEqual(col.increment_footer(None, Decimal('1.2')), None)
         self.assertEqual(col.finalize_footer(None, {'x': Decimal('20.5'), 'y': Decimal('0.5'), 'othervalue': 'string'}), Decimal('41.0'))
         self.assertEqual(col.finalize_footer(None, {'x': Decimal('20.5'), 'y': Decimal('0.0'), 'othervalue': 'string'}), Decimal('0.00'))
         self.assertEqual(col.finalize_footer(None, {'x': Decimal('20.5'), 'y': None, 'othervalue': 'string'}), None)

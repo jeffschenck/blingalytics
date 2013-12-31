@@ -223,12 +223,6 @@ Four: pull real data
 
 Be patient... coming soon.
 
-.. .. note::
-.. 
-..     This section assumes you already have a database set up, using
-..     SQLAlchemy and Elixir to connect and describe the tables. See
-..     :doc:`/sources/sqlalchemy_orm` for details.
-
 .. _Flask: http://flask.pocoo.org/
 .. _installed Flask: http://flask.pocoo.org/docs/installation/
 .. _jQuery: http://jquery.com/
