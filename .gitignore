@@ -1,7 +1,41 @@
-*.py[co]
-*.swp
+# System files
 .DS_Store
-docs/_build/
-Blingalytics.egg-info
-MANIFEST.in
 
+# Vagrant
+vagrant_*
+
+# Python files
+*.py[cod]
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+__pycache__
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject

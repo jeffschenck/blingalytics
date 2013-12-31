@@ -1,0 +1,2 @@
+requirements_path: "{{ shared_dir }}requirements.txt"
+virtualenv_dir: /var/venv

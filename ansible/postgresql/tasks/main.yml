@@ -1,0 +1,26 @@
+- name: install from package
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - postgresql
+    - libpq-dev
+    - python-psycopg2
+  sudo: yes
+
+- name: create configuration file
+  template: src=pg_hba.conf dest=/etc/postgresql/9.1/main/pg_hba.conf
+  sudo: yes
+  notify:
+    - restart postgresql
+
+- name: create database
+  postgresql_db: name={{ db_name }}
+  sudo: yes
+  sudo_user: postgres
+
+- name: create user
+  postgresql_user: name={{ db_user }} password={{ db_password }} db={{ db_name }}
+  sudo: yes
+  sudo_user: postgres
+
+- name: start service
+  service: name=postgresql state=started enabled=true

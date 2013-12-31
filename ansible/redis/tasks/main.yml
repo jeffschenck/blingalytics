@@ -1,0 +1,67 @@
+- name: install dependencies
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - build-essential
+    - tcl8.5
+  sudo: yes
+
+- name: download redis source
+  get_url: url=http://download.redis.io/releases/redis-{{ version }}.tar.gz dest=/opt/redis-{{ version }}.tar.gz
+  sudo: yes
+
+- name: untar the source
+  command: tar -zxf redis-{{ version }}.tar.gz chdir=/opt/ creates=/opt/redis-{{ version }}/README
+  sudo: yes
+
+- name: build from source
+  command: make chdir=/opt/redis-{{ version }}/ creates=/opt/redis-{{ version }}/src/redis-server
+  sudo: yes
+
+- name: make install
+  command: make install chdir=/opt/redis-{{ version }}/ creates=/usr/local/bin/redis-server
+  sudo: yes
+
+- name: make directories
+  command: mkdir -p {{ item }}
+  with_items:
+    - /etc/redis/
+    - /var/lib/redis/{{ port }}/
+  sudo: yes
+
+- name: copy conf file
+  command: cp /opt/redis-{{ version }}/redis.conf /etc/redis/{{ port }}.conf creates=/etc/redis/{{ port }}.conf
+  sudo: yes
+  notify:
+    - restart redis
+
+- name: update conf settings
+  lineinfile: dest=/etc/redis/{{ port }}.conf regexp="{{ item.regexp }}" line="{{ item.line }}"
+  with_items:
+    - { regexp: "^port \\d+$", line: "port {{ port }}" }
+    - { regexp: "^logfile .+$", line: "logfile /var/log/redis_{{ port }}.log" }
+    - { regexp: "^dir .+$", line: "dir /var/lib/redis/{{ port }}" }
+    - { regexp: "^pidfile .+$", line: "pidfile /var/run/redis_{{ port }}.pid" }
+    - { regexp: "^daemonize .+$", line: "daemonize yes" }
+  sudo: yes
+  notify:
+    - restart redis
+
+- name: copy init script
+  command: cp /opt/redis-{{ version }}/utils/redis_init_script /etc/init.d/redis_{{ port }} creates=/etc/init.d/redis_{{ port }}
+  sudo: yes
+  notify:
+    - restart redis
+
+- name: update init script
+  lineinfile: dest=/etc/init.d/redis_{{ port }} regexp="{{ item.regexp }}" line="{{ item.line }}" mode=0775
+  with_items:
+    - { regexp: "^REDISPORT=\\d+$", line: "REDISPORT={{ port }}" }
+    - { regexp: "^PIDFILE=.*$", line: "PIDFILE=/var/run/redis_{{ port }}.pid" }
+    - { regexp: "^CONF=.*", line: "CONF=/etc/redis/{{ port }}.conf" }
+  sudo: yes
+  notify:
+    - restart redis
+
+- name: start service
+  service: name=redis_{{ port }} enabled=yes state=started
+  sudo: yes

@@ -1,4 +1,4 @@
-redis
-sqlalchemy
-elixir
-django
+django==1.6.1
+psycopg2==2.5.1
+redis==2.8.0
+mock==1.0.1

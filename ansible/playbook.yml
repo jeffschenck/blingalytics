@@ -1,0 +1,10 @@
+- hosts: all
+  roles:
+    - common
+    - postgresql
+    - redis
+    - python
+  vars:
+    shared_dir: /vagrant/
+    home_dir: /home/vagrant/
+    project_name: blingalytics
