@@ -34,7 +34,7 @@ setup(
     version='0.2.0',
     author='Jeff Schenck, Adly Inc.',
     author_email='jmschenck@gmail.com',
-    url='http://github.com/adly/blingalytics',
+    url='http://github.com/jeffschenck/blingalytics',
     description='Blingalytics is a tool for building reports from your data.',
     long_description=long_description,
     license='',
