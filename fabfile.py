@@ -44,6 +44,7 @@ def update_pypi():
         after="release = '{0}'".format(new_version)))
 
     # Then tag and push to git
+    local('git commit -a -m "Revs version to v{0}"'.format(new_version))
     local('git tag -f -a v{0} -m "v{0}"'.format(new_version))
     local('git push origin master --tags')
 
