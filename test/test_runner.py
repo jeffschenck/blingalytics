@@ -32,6 +32,7 @@ if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromNames([
         'test_base',
         'test_helpers',
+        'caches.test_redis_cache',
         'sources.test_base',
         'sources.test_derived',
         'sources.test_django_orm',

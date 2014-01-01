@@ -38,7 +38,7 @@ class RedisCache(caches.Cache):
     def __init__(self, **kwargs):
         """
         Accepts the same arguments as redis-py client.
-        
+
         Defaults to localhost:6379 and database 0.
         """
         self.conn_kwargs = kwargs
@@ -159,8 +159,9 @@ class RedisCache(caches.Cache):
 
     def instance_timestamp(self, report_id, instance_id):
         table_name = '%s:%s' % (report_id, instance_id)
-        timestamp = self.conn['%s:' % table_name]
-        if not timestamp:
+        try:
+            timestamp = self.conn['%s:' % table_name]
+        except KeyError:
             raise caches.InstanceIncompleteError
         return decode(timestamp)
 
