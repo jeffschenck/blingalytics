@@ -36,21 +36,21 @@ def update_pypi():
         after="version='{0}'".format(new_version)))
     local('sed -i -r -e "s/{before}/{after}/g" {filename}'.format(
         filename=os.path.join(PROJECT_PATH, 'docs', 'conf.py'),
-        before=r"^version = '\d+\.\d+'$",
+        before=r"version = '[0-9]+\.[0-9]+'",
         after="version = '{0}'".format('.'.join(new_version.split('.')[:2]))))
     local('sed -i -r -e "s/{before}/{after}/g" {filename}'.format(
         filename=os.path.join(PROJECT_PATH, 'docs', 'conf.py'),
-        before=r"^release = '\d+\.\d+\.\w+'$",
+        before=r"release = '[0-9]+\.[0-9]+\.[0-9a-zA-Z]+'",
         after="release = '{0}'".format(new_version)))
 
     # Then tag and push to git
-    local('git tag -a v{0} -m "v{0}"'.format(new_version))
+    local('git tag -f -a v{0} -m "v{0}"'.format(new_version))
     local('git push origin master --tags')
 
     # Register new version on PyPI
     # Note: copy to /tmp because vagrant shared directories don't handle
     #       links well, which are part of the sdist process
-    local('cp -r {0} /tmp/'.format(os.path.join(PROJECT_PATH, 'blingalytics')))
+    local('cp -r {0} /tmp/'.format(PROJECT_PATH))
     with lcd('/tmp/blingalytics'):
         local('python setup.py register')
         local('python setup.py sdist upload')
