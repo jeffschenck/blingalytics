@@ -50,7 +50,7 @@ def update_pypi():
     # Register new version on PyPI
     # Note: copy to /tmp because vagrant shared directories don't handle
     #       links well, which are part of the sdist process
-    local('cp -r {0} /tmp/'.format(PROJECT_PATH))
-    with lcd('/tmp/blingalytics'):
+    local('cp -f -r {0} /tmp/'.format(PROJECT_PATH))
+    with lcd('/tmp/vagrant'):
         local('python setup.py register')
         local('python setup.py sdist upload')
