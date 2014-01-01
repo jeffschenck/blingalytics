@@ -14,12 +14,16 @@ from datetime import datetime
 from decimal import Decimal
 import itertools
 import hashlib
+import sys
 
 import redis
 
 from blingalytics import caches
 from blingalytics.utils.serialize import encode, encode_dict, decode, \
     decode_dict
+
+
+REDIS_MAX_INT = long(-sys.float_info.max)
 
 
 class RedisCache(caches.Cache):
@@ -98,6 +102,8 @@ class RedisCache(caches.Cache):
                     data[name] = float(value)
                 elif t in (int, float, long, str):
                     data[name] = value
+                elif t is type(None):
+                    data[name] = REDIS_MAX_INT  # For sorting
                 else:
                     data[name] = str(value)
             p.hmset(key, data)

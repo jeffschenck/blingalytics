@@ -77,8 +77,13 @@ class TestRedisCache(unittest.TestCase):
         ])
 
         rows = self.cache.instance_rows('report_name', '123abc',
-            sort=('price', 'desc'), limit=3, offset=1)
-        self.assertEqual(list(rows), [])
+            sort=('price', 'desc'), limit=None, offset=0)
+        self.assertEqual(list(rows), [
+            {'_bling_id': '1', 'id': 2, 'name': 'Tracy', 'price': Decimal('3.00'), 'count': 10},
+            {'_bling_id': '0', 'id': 1, 'name': 'Jeff', 'price': Decimal('1.50'), 'count': 40},
+            {'_bling_id': '2', 'id': 3, 'name': 'Connie', 'price': Decimal('0.00'), 'count': 100},
+            {'_bling_id': '3', 'id': 4, 'name': 'Megan', 'price': None, 'count': -20},
+        ])
 
     def test_instance_footer(self):
         self.assertRaises(InstanceIncompleteError, self.cache.instance_footer, 'report_name', '123abc')
