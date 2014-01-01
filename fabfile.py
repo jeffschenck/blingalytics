@@ -33,7 +33,7 @@ def update_pypi():
     local('sed -i -r -e "s/{before}/{after}/g" {filename}'.format(
         filename=os.path.join(PROJECT_PATH, 'setup.py'),
         before=r"version='[0-9a-zA-Z.]+'",
-        after='version={0}'.format(new_version)))
+        after="version='{0}'".format(new_version)))
     local('sed -i -r -e "s/{before}/{after}/g" {filename}'.format(
         filename=os.path.join(PROJECT_PATH, 'docs', 'conf.py'),
         before=r"^version = '\d+\.\d+'$",
