@@ -20,7 +20,7 @@ For the full documentation, please visit it over on `Read the Docs`_. Or if
 you're feeling particularly do-it-yourself today, you can always build the
 docs yourself with Sphinx_.
 
-Thanks to Adly_ for fostering the development of Blingalytics as an
+Thanks to Adly_ for fostering the initial development of Blingalytics as an
 open-source project. Blingalytics is released under the `MIT License`_.
 
 .. _Read the Docs: http://blingalytics.readthedocs.org/
@@ -37,15 +37,12 @@ setup(
     url='http://github.com/jeffschenck/blingalytics',
     description='Blingalytics is a tool for building reports from your data.',
     long_description=long_description,
-    license='',
+    license='MIT License',
     packages=[
         'blingalytics',
         'blingalytics.caches',
         'blingalytics.sources',
         'blingalytics.utils',
-        'blingalytics.statics',
-        'blingalytics.statics.css',
-        'blingalytics.statics.js',
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
