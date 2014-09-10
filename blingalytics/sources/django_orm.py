@@ -530,20 +530,8 @@ class FirstAggregate(Aggregate):
 
 class SQLFirstAggregate(SQLAggregate):
     sql_function = 'FIRST'
-    def __init__(self, col, source=None, is_summary=False, **extra):
-        self.col = col
-        self.source = source
-        self.is_summary = is_summary
-        self.extra = extra
-        tmp = self
-        while tmp and isinstance(tmp, SQLAggregate):
-            if getattr(tmp, 'is_ordinal', False):
-                tmp = ordinal_aggregate_field
-            elif getattr(tmp, 'is_computed', False):
-                tmp = computed_aggregate_field
-            else:
-                tmp = tmp.source
-        self.field = tmp
+    def __init__(self, *args, **kwargs):
+        super(SQLFirstAggregate, self).__init__(*args, **kwargs)
         # Klugy hack to get string columns to output strings, not coerce to floats
         if self.field.get_internal_type() in NON_MODIFY_FIELDS:
             self.field.get_internal_type = lambda: 'DecimalField'
