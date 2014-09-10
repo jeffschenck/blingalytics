@@ -45,8 +45,7 @@ import itertools
 
 from django.db import connection, models
 from django.db.models.aggregates import Aggregate
-from django.db.models.sql.aggregates import Aggregate as SQLAggregate, \
-    ordinal_aggregate_field, computed_aggregate_field
+from django.db.models.sql.aggregates import Aggregate as SQLAggregate
 
 from blingalytics import sources
 from blingalytics.utils.collections import OrderedDict
@@ -538,9 +537,19 @@ class SQLFirstAggregate(SQLAggregate):
         tmp = self
         while tmp and isinstance(tmp, SQLAggregate):
             if getattr(tmp, 'is_ordinal', False):
-                tmp = ordinal_aggregate_field
+                try:
+                    from django.db.models.sql.aggregates import ordinal_aggregate_field
+                    tmp = ordinal_aggregate_field
+                except ImportError:
+                    # so Django >= 1.7
+                    tmp = self._ordinal_aggregate_field
             elif getattr(tmp, 'is_computed', False):
-                tmp = computed_aggregate_field
+                try:
+                    from django.db.models.sql.aggregates import computed_aggregate_field
+                    tmp = computed_aggregate_field
+                except ImportError:
+                    # so Django >= 1.7
+                    tmp = self._computed_aggregate_field
             else:
                 tmp = tmp.source
         self.field = tmp
