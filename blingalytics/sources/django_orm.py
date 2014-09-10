@@ -302,7 +302,7 @@ class DjangoORMColumn(sources.Column):
 
     def __init__(self, field_name, transform=None, **kwargs):
         self.field_name = field_name
-        if transform and transform not in COLUMN_TRANSFORMS:
+        if transform and transform not in COLUMN_TRANSFORMS and not callable(transform):
             raise ValueError('Not a valid transform type: %s' % transform)
         self.transform = transform
         super(DjangoORMColumn, self).__init__(**kwargs)
@@ -393,8 +393,12 @@ class GroupBy(DjangoORMColumn):
     def get_query_extra_group_bys(self, model):
         if not self.transform:
             return {}
-        name = '{0.field_name}__{0.transform}'.format(self)
-        sql = COLUMN_TRANSFORMS[self.transform](self.field_name)
+        if callable(self.transform):
+            name = '{0}__{1}'.format(self.field_name, self.transform.__name__)
+            sql = self.transform(self.field_name)
+        else:
+            name = '{0.field_name}__{0.transform}'.format(self)
+            sql = COLUMN_TRANSFORMS[self.transform](self.field_name)
         return {name: sql}
 
     def increment_footer(self, total, cell):
