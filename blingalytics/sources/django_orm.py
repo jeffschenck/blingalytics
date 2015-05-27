@@ -516,10 +516,6 @@ class TableKeyRange(sources.KeyRange):
 # https://code.djangoproject.com/browser/django/trunk/django/db/models/aggregates.py#L26
 # https://code.djangoproject.com/browser/django/trunk/django/db/models/sql/aggregates.py
 
-NON_MODIFY_FIELDS = ['BooleanField', 'CharField',
-    'CommaSeparatedIntegerField', 'EmailField', 'FileField', 'FilePathField',
-    'ImageField', 'IPAddressField', 'GenericIPAddressField',
-    'NullBooleanField', 'SlugField', 'TextField', 'URLField', 'XMLField',]
 
 class FirstAggregate(Aggregate):
     name = 'First'
@@ -529,8 +525,3 @@ class FirstAggregate(Aggregate):
 
 class SQLFirstAggregate(SQLAggregate):
     sql_function = 'FIRST'
-    def __init__(self, *args, **kwargs):
-        super(SQLFirstAggregate, self).__init__(*args, **kwargs)
-        # Klugy hack to get string columns to output strings, not coerce to floats
-        if self.field.get_internal_type() in NON_MODIFY_FIELDS:
-            self.field.get_internal_type = lambda: 'DecimalField'
