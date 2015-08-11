@@ -43,7 +43,9 @@ encodings = {
     Decimal: lambda value: 'd_' + str(value),
     str: lambda value: 'u_' + _escape(value.encode('base-64')),
     unicode: lambda value: 'u_' + _escape(value.encode('utf-8').encode('base-64')),
-    datetime: lambda value: 't_%i.%06i' % (time.mktime(value.timetuple()), value.microsecond),
+    # NOTE: Read this stackoverflow for more info on why this needs to be done this way
+    # https://stackoverflow.com/questions/8777753/converting-datetime-date-to-utc-timestamp-in-python
+    datetime: lambda value: 't_%i' % ((value.replace(tzinfo=None) - datetime.utcfromtimestamp(0)).total_seconds()),
     date: lambda value: 'a_%i' % time.mktime(value.timetuple()),
     time_: lambda value: 'm_%s' % _time_encode(value),
     timedelta: lambda value: 'e_%i.%i.%i' % (value.days, value.seconds, value.microseconds),
@@ -59,7 +61,10 @@ decodings = {
     'b': lambda value: bool(int(value)),
     'd': Decimal,
     'u': lambda value: _unescape(value).decode('base-64').decode('utf-8'),
-    't': lambda value: datetime.fromtimestamp(float(value)),
+    # NOTE: Read this stackoverflow for more info on why this needs to be done this way.
+    # This is just needs to use utcfromtimestamp since we are using utcfromtimestamp above
+    # https://stackoverflow.com/questions/8777753/converting-datetime-date-to-utc-timestamp-in-python
+    't': lambda value: datetime.utcfromtimestamp(float(value)),
     'a': lambda value: date.fromtimestamp(float(value)),
     'm': lambda value: time_(*map(int, value.split('.'))),
     'e': lambda value: timedelta(*map(int, value.split('.'))),
