@@ -45,7 +45,6 @@ import itertools
 
 from django.db import connection, models
 from django.db.models.aggregates import Aggregate
-from django.db.models.sql.aggregates import Aggregate as SQLAggregate
 
 from blingalytics import sources
 from blingalytics.utils.collections import OrderedDict
@@ -518,10 +517,5 @@ class TableKeyRange(sources.KeyRange):
 
 
 class FirstAggregate(Aggregate):
-    name = 'First'
-    def add_to_query(self, query, alias, col, source, is_summary):
-        aggregate = SQLFirstAggregate(col, source=source, is_summary=is_summary, **self.extra)
-        query.aggregates[alias] = aggregate
-
-class SQLFirstAggregate(SQLAggregate):
-    sql_function = 'FIRST'
+    function = 'FIRST'
+    name = 'first'
