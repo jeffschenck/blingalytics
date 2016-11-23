@@ -232,7 +232,7 @@ class Report(with_metaclass(ReportMeta, object)):
             widget_unique_ids.append(widget.get_unique_id(self.dirty_inputs))
         user_input_string = ":".join(sorted(widget_unique_ids))
 
-        user_input_hash = hashlib.sha1(user_input_string).hexdigest()[::2]
+        user_input_hash = hashlib.sha1(user_input_string.encode('utf-8')).hexdigest()[::2]
         return self.code_name, user_input_hash
 
     @unique_id.setter
