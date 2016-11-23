@@ -218,9 +218,11 @@ class DjangoORMSource(sources.Source):
         current_key = None
         staged_rows = []
 
-        merged_results = sorted(
-            itertools.chain(key_rows, *self._queries(clean_inputs)),
-            key=operator.itemgetter(0),
+        if isinstance(key_rows, tuple):
+            key_rows = [key_rows]
+        merged_results = itertools.chain.from_iterable(
+            key_rows,
+            self._queries(clean_inputs),
         )
         for key, partial_row in merged_results:
             if current_key and current_key == key:
