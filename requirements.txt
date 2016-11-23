@@ -3,3 +3,4 @@ psycopg2==2.5.1
 redis==2.8.0
 mock==1.0.1
 fabric==1.11.1
+future==0.16.0

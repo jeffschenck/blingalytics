@@ -1,3 +1,5 @@
+from __future__ import division
+from past.utils import old_div
 from blingalytics import base, formats, widgets
 from blingalytics.sources import derived, key_range, django_orm
 
@@ -20,6 +22,6 @@ class BasicDatabaseReport(base.Report):
         ('user_is_active', django_orm.First('user_is_active', format=formats.Boolean(label='Active?'))),
         ('num_widgets', django_orm.Count('widget_id', distinct=True, format=formats.Integer(label='Widgets'))),
         ('_sum_widget_price', django_orm.Sum('widget_price')),
-        ('average_widget_price', derived.Value(lambda row: row['_sum_widget_price'] / row['num_widgets'], format=formats.Bling)),
+        ('average_widget_price', derived.Value(lambda row: old_div(row['_sum_widget_price'], row['num_widgets']), format=formats.Bling)),
     ]
     default_sort = ('average_widget_price', 'desc')

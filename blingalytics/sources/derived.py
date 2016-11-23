@@ -7,7 +7,10 @@ for net revenue that are both pulled from the database, you could have a
 derived column to display the gross margin by performing the operation
 ``(net revenue / gross revenue * 100)``.
 """
+from __future__ import division
 
+from builtins import str
+from past.utils import old_div
 from datetime import timedelta
 import decimal
 
@@ -93,8 +96,8 @@ class Value(DerivedColumn):
             if total and total[0] is not None and total[1]:
                 total, count = total
                 if isinstance(total, timedelta):
-                    return total / int(count)
-                return decimal.Decimal(str(total)) / decimal.Decimal(count)
+                    return old_div(total, int(count))
+                return old_div(decimal.Decimal(str(total)), decimal.Decimal(count))
             else:
                 return decimal.Decimal(0)
         if self.footer == 'sum':

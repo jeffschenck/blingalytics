@@ -1,10 +1,11 @@
-from mock import Mock
+from builtins import object
+from mock import MagicMock
 
 
 def mock_cache():
-    mock_cache = Mock()
-    setattr(mock_cache, '__enter__', Mock())
-    setattr(mock_cache, '__exit__', Mock())
+    mock_cache = MagicMock()
+    setattr(mock_cache, '__enter__', MagicMock())
+    setattr(mock_cache, '__exit__', MagicMock())
     return mock_cache
 
 

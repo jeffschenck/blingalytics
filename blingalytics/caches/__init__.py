@@ -10,6 +10,7 @@ filesystem. However, it cannot handle concurrent connections and is generally
 a poor choice outside of the development environment. At the moment, the
 preferred choice for deployment is :doc:`/caches/redis_cache`.
 """
+from builtins import object
 from functools import wraps
 
 

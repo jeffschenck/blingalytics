@@ -1,3 +1,4 @@
+from builtins import map
 from datetime import date, datetime, time as time_, timedelta
 from decimal import Decimal
 import itertools
@@ -19,13 +20,13 @@ def decode(value):
 def encode_dict(value):
     return dict(itertools.starmap(
         lambda k, v: (k, encode(v)),
-        value.iteritems()
+        iter(value.items())
     ))
 
 def decode_dict(value):
     return dict(itertools.starmap(
         lambda k, v: (k, decode(v)),
-        value.iteritems()
+        iter(value.items())
     ))
 
 def _time_encode(value):
@@ -37,21 +38,21 @@ def _time_encode(value):
 encodings = {
     type(None): lambda value: 'None',
     int: lambda value: 'i_' + str(value),
-    long: lambda value: 'i_' + str(value),
+    int: lambda value: 'i_' + str(value),
     float: lambda value: 'f_' + str(value),
     bool: lambda value: 'b_' + str(int(value)),
     Decimal: lambda value: 'd_' + str(value),
     str: lambda value: 'u_' + _escape(value.encode('base-64')),
-    unicode: lambda value: 'u_' + _escape(value.encode('utf-8').encode('base-64')),
+    str: lambda value: 'u_' + _escape(value.encode('utf-8').encode('base-64')),
     # NOTE: Read this stackoverflow for more info on why this needs to be done this way
     # https://stackoverflow.com/questions/8777753/converting-datetime-date-to-utc-timestamp-in-python
     datetime: lambda value: 't_%i' % ((value.replace(tzinfo=None) - datetime.utcfromtimestamp(0)).total_seconds()),
     date: lambda value: 'a_%i' % time.mktime(value.timetuple()),
     time_: lambda value: 'm_%s' % _time_encode(value),
     timedelta: lambda value: 'e_%i.%i.%i' % (value.days, value.seconds, value.microseconds),
-    tuple: lambda value: 'l_' + '_'.join(map(lambda a: _escape(encode(a)), value)),
-    list: lambda value: 'l_' + '_'.join(map(lambda a: _escape(encode(a)), value)),
-    dict: lambda value: 'h_' + '_'.join(map(lambda a: '%s:%s' % (_escape(encode(a[0])), _escape(encode(a[1]))), value.items())),
+    tuple: lambda value: 'l_' + '_'.join([_escape(encode(a)) for a in value]),
+    list: lambda value: 'l_' + '_'.join([_escape(encode(a)) for a in value]),
+    dict: lambda value: 'h_' + '_'.join(['%s:%s' % (_escape(encode(a[0])), _escape(encode(a[1]))) for a in list(value.items())]),
 }
 
 decodings = {
@@ -66,10 +67,10 @@ decodings = {
     # https://stackoverflow.com/questions/8777753/converting-datetime-date-to-utc-timestamp-in-python
     't': lambda value: datetime.utcfromtimestamp(float(value)),
     'a': lambda value: date.fromtimestamp(float(value)),
-    'm': lambda value: time_(*map(int, value.split('.'))),
-    'e': lambda value: timedelta(*map(int, value.split('.'))),
-    'l': lambda value: map(decode, map(_unescape, value.split('_'))),
-    'h': lambda value: dict(map(lambda a: map(decode, map(_unescape, a.split(':'))), value.split('_'))),
+    'm': lambda value: time_(*list(map(int, value.split('.')))),
+    'e': lambda value: timedelta(*list(map(int, value.split('.')))),
+    'l': lambda value: list(map(decode, list(map(_unescape, value.split('_'))))),
+    'h': lambda value: dict([list(map(decode, list(map(_unescape, a.split(':'))))) for a in value.split('_')]),
 }
 
 def _escape(value):

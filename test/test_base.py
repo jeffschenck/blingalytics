@@ -1,6 +1,10 @@
+from builtins import map
+from builtins import str
+from builtins import range
 from datetime import datetime
 from decimal import Decimal
 import unittest
+import types
 
 import blingalytics
 from blingalytics import base, formats, widgets
@@ -119,7 +123,7 @@ class TestReportBase(unittest.TestCase):
         self.report.run_report()
         args, kwargs = self.mock_cache.create_instance.call_args
         self.assertEqual(args[:2], ('basic_database_report', 'faafe977b85c59058a2a'))
-        self.assertTrue(callable(args[2].next))
+        self.assertIsInstance(args[2], types.GeneratorType)
         self.assertEqual(args[3:], (self.report._get_footer, 1800))
         self.assertEqual(kwargs, {})
 
@@ -400,7 +404,7 @@ class TestWidgets(unittest.TestCase):
             (4, 'four'),
             (8, 'eight'),
         )
-        CHOICES_CALL = lambda: [(i * i, str(i * i)) for i in xrange(10)]
+        CHOICES_CALL = lambda: [(i * i, str(i * i)) for i in range(10)]
         widget = widgets.Select(choices=CHOICES, default=0, extra_class='awesome', extra_attrs={'rel': 'super'})
         widget._report_code_name = 'report'
         widget._name = 'widget'
@@ -419,7 +423,7 @@ class TestWidgets(unittest.TestCase):
             '<option value="5" selected>25</option><option value="6" >36</option><option value="7" >49</option><option value="8" >64</option><option value="9" >81</option></select>')
 
     def test_multiselect_widget(self):
-        CHOICES_CALL = lambda: [(i * i, str(i * i)) for i in xrange(10)]
+        CHOICES_CALL = lambda: [(i * i, str(i * i)) for i in range(10)]
         widget = widgets.Multiselect(choices=CHOICES_CALL, default=0, extra_class='fail', extra_attrs={'stu': 'pendous'})
         widget._report_code_name = 'report'
         widget._name = 'widget'

@@ -1,5 +1,9 @@
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import zip
 import csv
-from cStringIO import StringIO
+from io import StringIO
 import json
 
 from blingalytics import get_report_by_code_name
@@ -48,7 +52,7 @@ def report_response(params, runner=None, cache=DEFAULT_CACHE):
             (key, (values if len(values) > 1 else values[0]))
             for key, values in params.iterlists()
         ])
-    params = dict((k, v) for k, v in params.items())
+    params = dict((k, v) for k, v in list(params.items()))
     report_code_name = params.pop('report', None)
     if not report_code_name:
         return (json.dumps({'errors': ['Report code name not specified.']}),
@@ -104,18 +108,9 @@ def report_response(params, runner=None, cache=DEFAULT_CACHE):
                 .strftime('%m-%d-%Y %I:%M %p UTC')])
             writer.writerow([])
             header = report.report_header()
-            writer.writerow(filter(
-                lambda a: a is not None,
-                map(
-                    lambda a: a['label'] if not a.get('hidden') else None,
-                    header
-                )
-            ))
+            writer.writerow([a for a in [a['label'] if not a.get('hidden') else None for a in header] if a is not None])
             for row in report.report_rows(format='csv'):
-                writer.writerow(map(
-                    lambda a: a[1],
-                    filter(lambda a: not a[0].get('hidden'), zip(header, row))
-                ))
+                writer.writerow([a[1] for a in [a for a in zip(header, row) if not a[0].get('hidden')]])
             return (output.getvalue(), 'text/csv', {
                 'Content-Disposition': 'attachment; filename="%s.csv"' \
                     % report.display_name
