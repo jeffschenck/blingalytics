@@ -217,7 +217,12 @@ class DjangoORMSource(sources.Source):
         current_row = None
         current_key = None
         staged_rows = []
-        for key, partial_row in heapq.merge(key_rows, *self._queries(clean_inputs)):
+
+        merged_results = sorted(
+            itertools.chain(key_rows, *self._queries(clean_inputs)),
+            key=lambda x: sorted(x.keys()),
+        )
+        for key, partial_row in merged_results:
             if current_key and current_key == key:
                 # Continue building the current row
                 current_row.update(partial_row)
