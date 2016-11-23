@@ -41,7 +41,7 @@ an extra report attribute to specify which model to pull the data from:
 
 from builtins import map
 from builtins import zip
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import heapq
 import itertools
 
@@ -49,7 +49,6 @@ from django.db import connection, models
 from django.db.models.aggregates import Aggregate
 
 from blingalytics import sources
-from blingalytics.utils.collections import OrderedDict
 
 
 QUERY_LIMIT = 1000
