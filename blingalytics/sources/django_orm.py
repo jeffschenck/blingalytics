@@ -42,8 +42,8 @@ an extra report attribute to specify which model to pull the data from:
 from builtins import map
 from builtins import zip
 from collections import defaultdict, OrderedDict
-import heapq
 import itertools
+import operator
 
 from django.db import connection, models
 from django.db.models.aggregates import Aggregate
@@ -220,7 +220,7 @@ class DjangoORMSource(sources.Source):
 
         merged_results = sorted(
             itertools.chain(key_rows, *self._queries(clean_inputs)),
-            key=lambda x: sorted(x.keys()),
+            key=operator.itemgetter(0),
         )
         for key, partial_row in merged_results:
             if current_key and current_key == key:
