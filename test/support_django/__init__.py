@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.core.management import call_command
 from django.db import connection
+from django import setup
 
 
 FIRST = [
@@ -25,9 +26,11 @@ FIRST = [
 
 def init_db_from_scratch():
     """Build the necessary stuff in the db to run."""
+    setup()
     call_command('flush', interactive=False, verbosity=0)
-    call_command('syncdb', interactive=False, verbosity=0)
+    call_command('migrate', interactive=False, verbosity=0)
     filler_data()
+
 
 def add_first_db_function():
     """Adds a first function to the database."""

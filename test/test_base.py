@@ -4,6 +4,7 @@ import unittest
 
 import blingalytics
 from blingalytics import base, formats, widgets
+from django import setup
 
 from test import reports_django
 from test.support_base import mock_cache
@@ -56,6 +57,7 @@ class TestReportUtilities(unittest.TestCase):
 
 class TestReportBase(unittest.TestCase):
     def setUp(self):
+        setup()
         self.mock_cache = mock_cache()
         self.report = reports_django.BasicDatabaseReport(self.mock_cache)
 

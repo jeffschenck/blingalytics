@@ -3,6 +3,7 @@ import unittest
 
 from blingalytics import helpers
 from blingalytics.caches.local_cache import LocalCache
+from django import setup
 from mock import Mock
 
 from test import reports_basic, reports_django
@@ -14,6 +15,7 @@ CACHE = LocalCache()
 
 class TestFrontendHelpers(unittest.TestCase):
     def setUp(self):
+        setup()
         report = reports_django.BasicDatabaseReport(CACHE)
         report.kill_cache(full=True)
         report = reports_basic.SuperBasicReport(CACHE)

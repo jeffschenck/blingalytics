@@ -1,6 +1,8 @@
 from decimal import Decimal
 import unittest
 
+import django
+
 from blingalytics.sources import derived
 
 from test import reports_django
@@ -9,6 +11,7 @@ from test.support_base import mock_cache
 
 class TestDerivedSource(unittest.TestCase):
     def setUp(self):
+        django.setup()
         self.report = reports_django.BasicDatabaseReport(mock_cache())
 
     def test_derived_source(self):
