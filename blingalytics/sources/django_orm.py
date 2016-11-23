@@ -220,7 +220,7 @@ class DjangoORMSource(sources.Source):
 
         if isinstance(key_rows, tuple):
             key_rows = [key_rows]
-        merged_results = itertools.chain.from_iterable(
+        merged_results = itertools.chain(
             key_rows,
             self._queries(clean_inputs),
         )
